@@ -20,7 +20,8 @@ const App = {
     el('bPend').onclick = ()=>el('pendModal').classList.add('on');
     el('pendModalClose').onclick = ()=>el('pendModal').classList.remove('on');
 
-    el('bHardUpdate').onclick = ()=>this.hardUpdate();
+    el('bHardUpdate').onclick  = ()=>this.hardUpdate();
+    el('bHardUpdate2').onclick = ()=>this.hardUpdate();
 
     await Train.init();
     await Progress.init();
