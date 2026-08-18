@@ -29,6 +29,7 @@ const Progress = {
       this.nivel = +ev.target.value;
       await DB.setting('nivel', this.nivel);
       flash(el('mMin'), this.levelMsg());
+      el('sumMin').textContent = 'Nivel '+this.nivel;
       await Train.reload();
     };
 
@@ -55,6 +56,7 @@ const Progress = {
       ev.target.value = '';
     };
 
+    el('sumMin').textContent = 'Nivel '+this.nivel;
     await this.reload();
   },
 
@@ -205,7 +207,7 @@ const Progress = {
     const mol = done.flatMap(w=>(w.molestias||[]).map(m=>({...m, fecha:w.fecha})))
       .sort((a,b)=>a.fecha<b.fecha?1:-1).slice(0,10);
 
-    el('st-gym').innerHTML = `
+        el('st-gym').innerHTML = `
       <div class="kpi">
         <div><span>Sesiones cerradas</span><b>${done.length}</b></div>
         <div><span>Adherencia 4 sem.</span><b>${plan4?Math.round(done4/plan4*100)+' %':'—'}</b></div>
@@ -213,32 +215,32 @@ const Progress = {
         <div><span>RPE medio (8 últ.)</span><b>${rpes.length?(rpes.reduce((s,w)=>s+w.rpe,0)/rpes.length).toFixed(1):'—'}</b></div>
       </div>
 
-      <div class="card"><h2>Volumen de esta semana</h2>
-        ${Object.keys(tgt).length ? Object.entries(tgt).map(([g,[lo,hi]])=>{
+      ${acc('Volumen semanal por grupo', `
+        ${Object.entries(tgt).map(([g,[lo,hi]])=>{
           const v = vol[g]||0;
           const pct = Math.min(100, v/hi*100);
           const cls = v<lo ? 'bad' : v>hi ? 'warn' : 'ok';
           return `<div class="bar"><span>${g}</span>
             <div class="track"><i class="${cls}" style="width:${pct}%"></i></div>
             <em class="${cls}">${v} / ${lo}-${hi}</em></div>`;
-        }).join('') : ''}
+        }).join('')}
         <p class="hint">Rojo = por debajo del mínimo eficaz · verde = en rango ·
-          ámbar = por encima del máximo adaptativo.</p>
-      </div>
+          ámbar = por encima del máximo adaptativo.</p>`,
+        'a-gym', true, 'semana en curso')}
 
-      <div class="card"><h2>Progresión de 1RM estimado</h2>
-        ${series.map(s=>`<h4 class="sub">${s.n}
-          <em>${s.pts[s.pts.length-1].y.toFixed(1)} kg</em></h4>
-          ${lineChart([{pts:s.pts, col:'var(--ac)', w:2.5}], 110)}`).join('')
-          || '<p class="hint">Sin datos suficientes.</p>'}
-      </div>
+      ${acc('Progresión de 1RM estimado',
+        series.length
+          ? series.map(s=>`<h4 class="sub">${s.n}<em>${s.pts[s.pts.length-1].y.toFixed(1)} kg</em></h4>
+              ${lineChart([{pts:s.pts, col:'var(--ac)', w:2.5}], 120)}`).join('')
+          : '<p class="hint">Sin datos suficientes. Necesitas al menos 2 sesiones con el mismo ejercicio.</p>',
+        'a-gym', false, series.length+' ejercicios')}
 
-      ${mol.length?`<div class="card"><h2>Historial de molestias</h2>
+      ${mol.length ? acc('Historial de molestias', `
         <table><tr><th>Fecha</th><th>Ejercicio</th><th>Zona</th><th class="n">Nivel</th></tr>
         ${mol.map(m=>`<tr><td>${D.label(m.fecha)}</td><td>${EX[m.ex]?.n||m.ex}</td>
           <td>${m.zona}</td><td class="n">${m.nivel}</td></tr>`).join('')}</table>
-        <p class="hint">Si una zona se repite con el mismo ejercicio, hay que sustituirlo.</p>
-      </div>`:''}`;
+        <p class="hint">Si una zona se repite con el mismo ejercicio, hay que sustituirlo.</p>`,
+        'a-alert', false, mol.length+' registros') : ''}`;
   },
 
   /* ═══ ESTADÍSTICAS · RUNNING ═══ */
@@ -266,7 +268,7 @@ const Progress = {
       t.n++; t.km += r.km||0; t.seg += r.seg||0;
     });
 
-    el('st-run').innerHTML = `
+        el('st-run').innerHTML = `
       <div class="kpi">
         <div><span>Total acumulado</span><b>${total.toFixed(1)} km</b></div>
         <div><span>Últimos 7 días</span><b>${km7.toFixed(1)} km</b></div>
@@ -274,25 +276,26 @@ const Progress = {
         <div><span>Días al 10 K</span><b>${dias>0?dias:'—'}</b></div>
       </div>
 
-      <div class="card"><h2>Kilómetros por semana</h2>
+      ${acc('Kilómetros por semana', `
         ${barChart(wkPts.slice(-12), 35)}
-        <p class="hint">Línea de referencia: 35 km/semana, el techo del plan antes del
-          10 K. Por encima, la interferencia con la hipertrofia se vuelve real.</p>
-      </div>
+        <p class="hint">La línea roja discontinua son los 35 km/semana, el techo del plan
+          antes del 10 K. Por encima, la interferencia con la hipertrofia se vuelve real.</p>`,
+        'a-run', true, wkPts.length+' semanas')}
 
-      <div class="card"><h2>Ritmo en rodaje fácil (Z2)</h2>
-        ${z2.length>1 ? lineChart([{pts:z2, col:'var(--ac2)', w:2.5}], 130, true)
+      ${acc('Ritmo en rodaje fácil (Z2)', `
+        ${z2.length>1 ? lineChart([{pts:z2, col:'var(--info)', w:2.5}], 140, true)
           : '<p class="hint">Necesitas al menos 2 rodajes Z2 registrados.</p>'}
-        <p class="hint">Aquí <strong>bajar es mejorar</strong>: significa que corres más
-          rápido con el mismo esfuerzo cardiaco. Objetivo de la fase: 6:45-7:15/km.</p>
-      </div>
+        <p class="hint">Aquí <strong>subir es mejorar</strong>: el eje está invertido, así
+          que la línea sube cuando corres más rápido con el mismo esfuerzo cardiaco.
+          Objetivo de la fase: 6:45-7:15/km.</p>`,
+        'a-run', false)}
 
-      <div class="card"><h2>Por tipo de sesión</h2>
+      ${acc('Por tipo de sesión', `
         <table><tr><th>Tipo</th><th class="n">Ses.</th><th class="n">km</th><th class="n">Ritmo medio</th></tr>
         ${Object.entries(porTipo).map(([k,t])=>`<tr><td>${RUN_TYPES[k]?.n||k}</td>
           <td class="n">${t.n}</td><td class="n">${t.km.toFixed(1)}</td>
-          <td class="n">${Calc.pace(t.km,t.seg)||'—'}</td></tr>`).join('')}</table>
-      </div>`;
+          <td class="n">${Calc.pace(t.km,t.seg)||'—'}</td></tr>`).join('')}</table>`,
+        'a-run', false)}`;
   },
 
   /* ═══ ESTADÍSTICAS · CUERPO ═══ */
@@ -314,7 +317,7 @@ const Progress = {
     const pasos = this.B.filter(b=>b.pasos!=null).slice(-14);
     const sueno = this.B.filter(b=>b.sueno!=null).slice(-14);
 
-    el('st-body').innerHTML = `
+        el('st-body').innerHTML = `
       <div class="kpi">
         <div><span>Media móvil 7d</span><b>${ma.length&&ma[ma.length-1].ma?ma[ma.length-1].ma.toFixed(1)+' kg':'—'}</b></div>
         <div><span>Tendencia semanal</span><b class="${trend==null?'':trend<0?'down':'up'}">${trend==null?'—':(trend>0?'+':'')+trend.toFixed(2)+' %'}</b></div>
@@ -323,31 +326,31 @@ const Progress = {
       </div>
       <p class="hint">Objetivo de la fase ${ph.id}: ${ph.pasos} pasos · acostarse a ${ph.dormir}</p>
 
-      <div class="card"><h2>Peso — media móvil de 7 días</h2>
+      ${acc('Peso — media móvil de 7 días', `
         ${lineChart([
-          {pts:ma.filter(r=>r.peso!=null).map(r=>({x:r.fecha,y:r.peso})), col:'var(--tx2)', w:1.4, op:0.5},
+          {pts:ma.filter(r=>r.peso!=null).map(r=>({x:r.fecha,y:r.peso})), col:'var(--tx3)', w:1.6},
           {pts:ma.filter(r=>r.ma!=null).map(r=>({x:r.fecha,y:r.ma})), col:'var(--ac)', w:3}
-        ], 170)}
+        ], 180)}
         <p class="hint">Línea gruesa = media móvil. <strong>Solo esa cuenta.</strong>
-          Un déficit de 0,35 kg/semana es invisible dentro de la fluctuación diaria de 1-2 kg.</p>
-      </div>
+          Un déficit de 0,35 kg/semana es invisible dentro de la fluctuación diaria de 1-2 kg.</p>`,
+        'a-body', true)}
 
-      <div class="card"><h2>Cintura al ombligo</h2>
-        ${cint.length>1?lineChart([{pts:cint, col:'var(--warn)', w:2.5}],130)
+      ${acc('Ratio hombro / cintura', `
+        ${ratio.length>1?lineChart([{pts:ratio, col:'var(--ac)', w:2.5}],140)
           :'<p class="hint">Necesitas 2 tomas de perímetros.</p>'}
-      </div>
+        <p class="hint">La métrica que corresponde literalmente a tu objetivo:
+          hombro redondo y cintura estrecha en un número. <strong>Sube aunque el peso no se mueva.</strong></p>`,
+        'a-body', true, ratio.length?ratio[ratio.length-1].y.toFixed(3):'—')}
 
-      <div class="card"><h2>Ratio hombro / cintura</h2>
-        ${ratio.length>1?lineChart([{pts:ratio, col:'var(--ac)', w:2.5}],130)
-          :'<p class="hint">Necesitas 2 tomas de perímetros.</p>'}
-        <p class="hint">La métrica que corresponde literalmente a tu objetivo.
-          Sube aunque el peso no se mueva.</p>
-      </div>
+      ${acc('Cintura al ombligo', `
+        ${cint.length>1?lineChart([{pts:cint, col:'var(--warn)', w:2.5}],140)
+          :'<p class="hint">Necesitas 2 tomas de perímetros.</p>'}`,
+        'a-body', false, cint.length?cint[cint.length-1].y.toFixed(1)+' cm':'—')}
 
-      <div class="card"><h2>% de grasa estimado (Navy)</h2>
-        ${navy.length>1?lineChart([{pts:navy, col:'var(--ac2)', w:2.5}],130)
-          :'<p class="hint">Necesitas 2 tomas de perímetros.</p>'}
-      </div>`;
+      ${acc('% de grasa estimado (Navy)', `
+        ${navy.length>1?lineChart([{pts:navy, col:'var(--info)', w:2.5}],140)
+          :'<p class="hint">Necesitas 2 tomas de perímetros.</p>'}`,
+        'a-body', false, navy.length?navy[navy.length-1].y.toFixed(1)+' %':'—')}`;
   },
 
   /* Tendencia de la media móvil en %/semana */
@@ -466,26 +469,36 @@ const Progress = {
   },
 
   /* ═══ RECORDATORIOS ═══ */
+    /* ═══ AVISOS ═══
+     No se pintan en la página: se mandan a la campana de la cabecera. */
   async renderReminders(){
     const hoy = D.today(), av = [];
+
     const lastExp = await DB.setting('last_export');
     if(!lastExp || D.diffDays(lastExp,hoy)>=7)
-      av.push(`Exportar backup — ${lastExp?`última copia hace ${D.diffDays(lastExp,hoy)} días`:'nunca exportado'}. Los datos viven solo en este móvil.`);
+      av.push(`<strong>Exportar backup</strong> — ${lastExp?`última copia hace ${D.diffDays(lastExp,hoy)} días`:'nunca exportado'}. Los datos viven solo en este móvil.`);
 
     const lastM = this.M.map(m=>m.fecha).sort().pop();
     if(!lastM || D.diffDays(lastM,hoy)>=14)
-      av.push(`Tomar perímetros — ${lastM?`última toma hace ${D.diffDays(lastM,hoy)} días`:'sin línea base'}. Toca cada 14 días.`);
+      av.push(`<strong>Tomar perímetros</strong> — ${lastM?`última toma hace ${D.diffDays(lastM,hoy)} días`:'sin línea base'}. Toca cada 14 días.`);
 
     const lastF = this.B.filter(b=>b.foto).map(b=>b.fecha).sort().pop();
     if(!lastF || D.diffDays(lastF,hoy)>=28)
-      av.push(`Hacer las 5 fotos — ${lastF?`últimas hace ${D.diffDays(lastF,hoy)} días`:'sin fotos de referencia'}. Misma luz, mismo sitio, misma hora.`);
+      av.push(`<strong>Hacer las 5 fotos</strong> — ${lastF?`últimas hace ${D.diffDays(lastF,hoy)} días`:'sin fotos de referencia'}. Misma luz, mismo sitio, misma hora.`);
 
-    if(D.dow(hoy)===0) av.push('Es domingo: revisión semanal y batch cooking de lunes a miércoles.');
+    const hoyB = this.B.find(b=>b.fecha===hoy);
+    if(!hoyB || hoyB.peso==null)
+      av.push('<strong>Pesarte y registrarlo</strong> — en ayunas, después del baño. El dato de hoy falta.');
 
-    el('reminders').innerHTML = av.length
-      ? `<div class="card warn-card"><h2>Pendiente</h2>${av.map(a=>`<p>⚠ ${a}</p>`).join('')}</div>`
-      : '';
-  }
+    if(Calc.weekNum(hoy)===3)
+      av.push('<strong>Semana 3</strong> — registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
+
+    if(D.dow(hoy)===0)
+      av.push('<strong>Es domingo</strong> — revisión semanal, exportar backup y batch cooking de lunes a miércoles.');
+
+    App.setPending(av);
+    el('sumMeas').textContent = lastM ? `hace ${D.diffDays(lastM,hoy)} d` : 'sin datos';
+  },
 };
 
 /* ═══════════════════ GRÁFICAS SVG ═══════════════════
@@ -541,4 +554,12 @@ function barChart(pts, ref){
     <text x="${P}" y="${h-8}" class="axis">${D.label(pts[0].x)}</text>
     <text x="${W-P}" y="${h-8}" class="axis" text-anchor="end">${D.label(pts[pts.length-1].x)}</text>
   </svg>`;
+}
+
+/* Acordeón reutilizable para las tarjetas generadas por JavaScript.
+   Usa <details> nativo: sin estado en JS, no se puede desincronizar. */
+function acc(title, body, cls, open, sum){
+  return `<details class="acc ${cls||''}"${open?' open':''}>
+    <summary><i class="lead"></i>${title}${sum?`<span class="sum">${sum}</span>`:''}</summary>
+    <div class="acc-body">${body}</div></details>`;
 }
