@@ -92,24 +92,32 @@ const DB = {
 };
 
 /* ── Semilla de la base de alimentos ──
-   Solo la primera vez. Los alimentos escaneados se añaden encima
-   y nunca se sobrescriben con la semilla. */
+   Incremental e idempotente: en cada arranque compara la tabla del plan
+   con lo que ya hay en IndexedDB e inserta SOLO lo que falta.
+   Nunca sobrescribe un alimento existente, así que los productos
+   escaneados y las correcciones manuales se conservan. */
 async function seedFoods(){
-  const done = await DB.setting('seed_foods');
-  if(done)return;
-  const arr = Object.entries(FOODS).map(([id,f])=>({
-    id, n:f.n, marca:f.m||null, barcode:null, ud:f.ud||null,
-    por100:{kcal:f.kcal, p:f.p, c:f.c, g:f.g, fib:f.fib||0},
-    nota:f.nota||null, origen:'plan', favorito:true
-  }));
-  await DB.bulk('foods',arr);
+  const existing = await DB.getAll('foods');
+  const have = new Set(existing.map(f=>f.id));
 
-  const rec = Object.entries(RECIPES).map(([rid,r])=>({
-    rid, n:r.n, raciones:r.raciones, it:r.it, pasos:r.pasos, origen:'plan'
-  }));
-  await DB.bulk('recipes',rec);
+  const nuevos = Object.entries(FOODS)
+    .filter(([id])=>!have.has(id))
+    .map(([id,f])=>({
+      id, n:f.n, marca:f.m||null, barcode:null, ud:f.ud||null,
+      por100:{kcal:f.kcal, p:f.p, c:f.c, g:f.g, fib:f.fib||0},
+      nota:f.nota||null, origen:'plan', favorito:true
+    }));
+  if(nuevos.length) await DB.bulk('foods', nuevos);
 
-  await DB.setting('seed_foods',true);
+  const recs = await DB.getAll('recipes');
+  const haveR = new Set(recs.map(r=>r.rid).filter(Boolean));
+  const nuevasR = Object.entries(RECIPES)
+    .filter(([rid])=>!haveR.has(rid))
+    .map(([rid,r])=>({rid, n:r.n, raciones:r.raciones, it:r.it,
+      pasos:r.pasos, origen:'plan'}));
+  if(nuevasR.length) await DB.bulk('recipes', nuevasR);
+
+  return {foods:nuevos.length, recipes:nuevasR.length};
 }
 
 /* ═══════════════════ FECHAS ═══════════════════ */

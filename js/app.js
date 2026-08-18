@@ -35,7 +35,7 @@ const App = {
         recargando = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js')
+      navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'})
         .then(reg=>reg.update())
         .catch(()=>{});
     }
@@ -197,7 +197,8 @@ const App = {
         <p class="note">${hito.t}</p>`;
     }
 
-    el('appVer').textContent = 'Arnold ' + APP_VER;
+    el('appVer').textContent = `Arnold ${APP_VER} · build ${document.lastModified}`;
+  
   },
 
   async saveDay(){

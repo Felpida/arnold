@@ -323,11 +323,20 @@ const Diet = {
   /* ═══ ALIMENTOS ═══ */
   renderFoods(){
     const q = (el('foodSearch').value||'').toLowerCase().trim();
+    const falta = this.missingFoods();
     const fs = Object.values(this.foods)
       .filter(f=>!q || f.n.toLowerCase().includes(q) || (f.marca||'').toLowerCase().includes(q))
       .sort((a,b)=>(b.favorito?1:0)-(a.favorito?1:0) || a.n.localeCompare(b.n));
 
-    el('foodList').innerHTML = `<p class="hint">${fs.length} alimentos
+    el('foodList').innerHTML = `${falta.length?`<div class="card warn-card">
+        <h2>Ingredientes sin datos</h2>
+        <p>Hay ${falta.length} ingredientes usados en las recetas que no están en la base
+          de datos, así que esos platos calculan menos calorías de las reales:</p>
+        <p class="hint">${falta.join(', ')}</p>
+        <p class="hint">Si ves esto, avísame: falta una entrada en la tabla de alimentos.</p>
+      </div>`:''}
+      
+     <p class="hint">${fs.length} alimentos
       ${q?'que coinciden':'en la base'}</p>
       <table><tr><th>Alimento</th><th class="n">kcal</th><th class="n">P</th>
         <th class="n">HC</th><th class="n">G</th></tr>
@@ -657,5 +666,14 @@ const Diet = {
       await DB.put('shopping', L2);
       await this.renderShop();
     };
+  },
+
+    /* Ingredientes que las recetas usan y no existen en la base de datos.
+     Si esta lista no está vacía, hay platos calculando macros a la baja. */
+  missingFoods(){
+    const falta = new Set();
+    Object.values(MEALS).forEach(M=>M.op.forEach(o=>
+      o.it.forEach(([id])=>{ if(!this.foods[id]) falta.add(id); })));
+    return [...falta];
   }
 };

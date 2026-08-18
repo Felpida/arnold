@@ -41,7 +41,7 @@ self.addEventListener('fetch', e=>{
   // App shell: red primero para que los cambios lleguen al recargar,
   // caché como respaldo cuando no hay conexión.
   e.respondWith(
-    fetch(req)
+    fetch(req, {cache:'no-store'})
       .then(res=>{
         const copy = res.clone();
         caches.open(CACHE).then(c=>c.put(req, copy));
