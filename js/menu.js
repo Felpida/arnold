@@ -58,7 +58,46 @@ const FOODS = {
   aove:          {n:'Aceite de oliva virgen extra',m:'Hacendado', kcal:900, p:0,   c:0,  g:100, fib:0},
   nueces:        {n:'Nueces',                      m:'Hacendado', kcal:654, p:15,  c:7,  g:65,  fib:6.7},
   miel:          {n:'Miel',                        m:'Hacendado', kcal:320, p:0.3, c:80, g:0,   fib:0},
-  tomate_frito:  {n:'Tomate frito',                m:'Hacendado', kcal:80,  p:1.5, c:9,  g:4,   fib:1.5}
+  tomate_frito:  {n:'Tomate frito',                m:'Hacendado', kcal:80,  p:1.5, c:9,  g:4,   fib:1.5},
+
+  /* ── Carnes añadidas ── */
+  lomo_cerdo:    {n:'Lomo de cerdo',                m:'—', kcal:130, p:22,  c:0,  g:4.5, fib:0},
+
+  /* ── Lácteos y quesos de cocina ── */
+  parmesano:     {n:'Queso parmesano / grana padano', m:'Hacendado', kcal:400, p:33, c:0,   g:29,  fib:0},
+  mozzarella:    {n:'Mozzarella fresca',            m:'Hacendado', kcal:250, p:18, c:1,   g:19,  fib:0},
+  nata_ligera:   {n:'Nata ligera para cocinar 15 %',m:'Hacendado', kcal:160, p:2.5, c:4,  g:15,  fib:0},
+
+  /* ── Base asiática ── */
+  salsa_soja:    {n:'Salsa de soja',                m:'Hacendado', kcal:60,  p:6,   c:5.6, g:0.1, fib:0},
+  leche_coco:    {n:'Leche de coco ligera',         m:'Hacendado', kcal:73,  p:0.8, c:2,   g:7,   fib:0},
+  curry_polvo:   {n:'Curry en polvo',               m:'Hacendado', kcal:325, p:14,  c:25,  g:14,  fib:33},
+  jengibre:      {n:'Jengibre fresco',              m:'—', kcal:80,  p:1.8, c:18,  g:0.8, fib:2},
+  sesamo:        {n:'Semillas de sésamo',           m:'Hacendado', kcal:573, p:17,  c:23,  g:50,  fib:12},
+  noodles:       {n:'Fideos chinos / noodles',      m:'Hacendado', kcal:348, p:12,  c:71,  g:1.4, fib:2.5},
+
+  /* ── Base italiana ── */
+  tomate_triturado:{n:'Tomate triturado',           m:'Hacendado', kcal:30,  p:1.3, c:4.5, g:0.2, fib:1.2,
+                    nota:'Base de cocción, como el tomate frito. No es tomate natural en crudo.'},
+  pesto:         {n:'Pesto genovés',                m:'Hacendado', kcal:450, p:5,   c:6,   g:45,  fib:2},
+
+  /* ── Empanados ── */
+  panko:         {n:'Pan rallado panko',            m:'Hacendado', kcal:380, p:12,  c:72,  g:3,   fib:3},
+  harina:        {n:'Harina de trigo',              m:'Hacendado', kcal:350, p:10,  c:72,  g:1.2, fib:2.7},
+
+  /* ── Verduras y hortalizas añadidas ── */
+  cebolla:       {n:'Cebolla',                      m:'—', kcal:40,  p:1.1, c:9,   g:0.1, fib:1.7},
+  ajo:           {n:'Ajo',                          m:'—', kcal:149, p:6.4, c:33,  g:0.5, fib:2.1},
+  zanahoria:     {n:'Zanahoria',                    m:'—', kcal:41,  p:0.9, c:10,  g:0.2, fib:2.8},
+  pimiento_verde:{n:'Pimiento verde o rojo',        m:'—', kcal:20,  p:0.9, c:4.6, g:0.2, fib:1.7},
+  champinones:   {n:'Champiñones',                  m:'—', kcal:22,  p:3.1, c:3.3, g:0.3, fib:1},
+  calabacin:     {n:'Calabacín',                    m:'—', kcal:17,  p:1.2, c:3.1, g:0.3, fib:1.1},
+  espinacas:     {n:'Espinacas (congeladas)',       m:'Hacendado', kcal:23, p:2.9, c:3.6, g:0.4, fib:2.2},
+  maiz_dulce:    {n:'Maíz dulce en conserva',       m:'Hacendado', kcal:86,  p:3.2, c:19,  g:1.2, fib:2.5},
+
+  gambas:        {n:'Gambas peladas congeladas',    m:'Hacendado', kcal:85, p:18,  c:0.5, g:1,   fib:0,
+                  nota:'~5,50 €/100 g de proteína. Máximo 1-2 veces por semana, como el salmón.'},
+  guisantes:     {n:'Guisantes congelados',         m:'Hacendado', kcal:81, p:5.4, c:14,  g:0.4, fib:5}
 };
 
 /* Alimentos vetados. La app los bloquea al escanear o al añadir a una receta. */
@@ -103,7 +142,14 @@ const MEALS = {
        it:[['pan_integral',55],['huevo',165],['claras',70],['pepino',40],['naranja',200]]},
       {id:'A4', n:'Sándwich de jamón cocido y havarti',
        it:[['pan_molde_int',84],['jamon_cocido',120],['queso_havarti',15],['pepino',40],['manzana',180]],
-       nota:'Versión corregida de tu sándwich de fin de semana: 120 g de jamón en lugar de 2 lonchas.'}
+       nota:'Versión corregida de tu sándwich de fin de semana: 120 g de jamón en lugar de 2 lonchas.'},
+      {id:'A5', n:'Bocadillo de pollo teriyaki',
+       it:[['pan_integral',70],['muslo_pollo',110],['salsa_soja',10],['miel',5],
+           ['pepino',30],['aove',5],['manzana',180]],
+       nota:'Marina el pollo la noche antes con la soja y la miel: se hace en 6 min a la plancha.'},
+      {id:'A6', n:'Sándwich caprese con pollo',
+       it:[['pan_molde_int',84],['pechuga_pollo',70],['mozzarella',40],['pesto',8],['naranja',200]],
+       nota:'En frío. Se monta en 2 minutos por la mañana.'}
     ]},
 
   /* ─────── COMIDA · 14:00 · TUPPER ─────── */
@@ -121,7 +167,47 @@ const MEALS = {
        it:[['garbanzos_bote',220],['muslo_pollo',100],['verdura_cong',200],['aove',8],['pan_integral',20]],
        nota:'Cuenta como una de las 2 raciones semanales de legumbre obligatorias.'},
       {id:'C6', n:'Pasta con pavo picado',
-       it:[['pasta',60],['pavo_picado',140],['verdura_cong',250],['tomate_frito',40],['aove',12]]}
+       it:[['pasta',60],['pavo_picado',140],['verdura_cong',250],['tomate_frito',40],['aove',12]]},
+      {id:'C7', n:'Pollo katsu con arroz',
+       it:[['pechuga_pollo',130],['panko',25],['huevo',25],['harina',8],
+           ['arroz',50],['verdura_cong',150],['aove',14]],
+       nota:'Al horno o freidora de aire, no frito: mismo panko crujiente con una fracción del aceite. 200 °C, 18 min, dándole la vuelta a mitad.'},
+      {id:'C8', n:'Ternera con soja y miel y arroz',
+       it:[['ternera_5',150],['salsa_soja',20],['miel',12],['arroz',60],
+           ['cebolla',50],['pimiento_verde',80],['zanahoria',50],['aove',12],['sesamo',5]],
+       nota:'Sella la carne a fuego fuerte, retírala, saltea la verdura y devuélvela con la soja y la miel al final. Si la miel entra antes, se quema.'},
+      {id:'C9', n:'Pollo teriyaki con noodles',
+       it:[['muslo_pollo',150],['salsa_soja',20],['miel',10],['noodles',55],
+           ['verdura_cong',200],['jengibre',5],['aove',10],['sesamo',5]],
+       nota:'Reduce la soja con la miel y el jengibre hasta que espese antes de mezclar.'},
+      {id:'C10', n:'Curry de pollo con arroz',
+       it:[['muslo_pollo',140],['leche_coco',80],['curry_polvo',8],['arroz',60],
+           ['cebolla',60],['zanahoria',60],['espinacas',80],['aove',8]],
+       nota:'Tuesta el curry en polvo 30 s en el aceite antes de añadir nada más: cambia por completo el resultado.'},
+      {id:'C11', n:'Pasta a la boloñesa',
+       it:[['pasta',60],['ternera_5',150],['tomate_triturado',150],['cebolla',50],
+           ['zanahoria',50],['aove',10],['parmesano',10]],
+       nota:'La zanahoria rallada en el sofrito es lo que da el dulzor sin azúcar.'},
+      {id:'C12', n:'Pollo a la milanesa con pasta',
+       it:[['pechuga_pollo',120],['panko',25],['huevo',25],['pasta',45],
+           ['tomate_triturado',100],['ensalada',100],['aove',14],['parmesano',8]],
+       nota:'Al horno, igual que el katsu.'},
+      {id:'C13', n:'Pasta al pesto con pollo',
+       it:[['pasta',70],['muslo_pollo',140],['pesto',20],['calabacin',100],
+           ['parmesano',10],['aove',5]],
+       nota:'El pesto no se cocina: se mezcla fuera del fuego con un poco del agua de la pasta.'},
+      {id:'C14', n:'Bowl de pollo, maíz y alubias',
+       it:[['arroz',55],['pechuga_pollo',130],['maiz_dulce',60],['pimiento_verde',80],
+           ['cebolla',40],['alubias_bote',80],['aove',14]],
+       nota:'Se come frío o templado, así que aguanta bien como tupper.'},
+      {id:'C15', n:'Arroz frito con gambas y huevo',
+       it:[['arroz',60],['gambas',150],['huevo',55],['guisantes',60],['zanahoria',50],
+           ['cebolla',40],['salsa_soja',15],['aove',10],['sesamo',4]],
+       nota:'Con arroz del día anterior sale mucho mejor: el recién hecho suelta almidón y se empasta. Cuaja el huevo aparte y mézclalo al final.'},
+      {id:'C16', n:'Yakisoba de gambas',
+       it:[['noodles',60],['gambas',160],['verdura_cong',200],['pimiento_verde',80],
+           ['salsa_soja',18],['jengibre',5],['aove',16],['sesamo',5]],
+       nota:'Las gambas se hacen en 2 minutos. Échalas al final o quedan gomosas.'}
     ]},
 
   /* ─────── PRE-ENTRENO · 17:00 ─────── */
@@ -161,7 +247,22 @@ const MEALS = {
        it:[['patata',280],['salmon',140],['verdura_cong',150],['aove',6]],
        nota:'Máximo 1 vez por semana: es el plato más caro del recetario.'},
       {id:'CG', n:'Pasta con atún',
-       it:[['pasta',65],['atun_natural',120],['verdura_cong',150],['tomate_frito',40],['aove',16]]}
+       it:[['pasta',65],['atun_natural',120],['verdura_cong',150],['tomate_frito',40],['aove',16]]},
+      {id:'CH', n:'Salteado de cerdo con arroz',
+       it:[['lomo_cerdo',130],['arroz',60],['verdura_cong',200],['salsa_soja',15],
+           ['ajo',5],['aove',14],['sesamo',4]],
+       nota:'Sartén muy caliente y poca cantidad cada vez: si abarrotas la sartén, el cerdo cuece en vez de saltearse.'},
+      {id:'CJ', n:'Lasaña de calabacín y ternera',
+       it:[['ternera_5',100],['calabacin',250],['tomate_triturado',150],['mozzarella',40],
+           ['patata',200],['aove',12],['parmesano',8]],
+       nota:'Láminas de calabacín en lugar de placas de pasta, con la patata en rodajas de base. Menos hidratos por volumen, así que llena mucho.'},
+      {id:'CK', n:'Risotto de champiñones con pollo',
+       it:[['arroz',60],['muslo_pollo',115],['champinones',200],['nata_ligera',40],
+           ['parmesano',12],['cebolla',50],['aove',10]],
+       nota:'No hace falta arroz arborio: con el redondo normal y removiendo sale cremoso.'},
+      {id:'CL', n:'Gambas al ajillo con arroz',
+       it:[['gambas',165],['arroz',60],['ajo',8],['verdura_cong',150],['aove',25]],
+       nota:'Los 25 g de aceite son parte del plato, no un extra: es donde se cocina el ajo y lo que hace la salsa. Aceite a fuego medio, ajo laminado hasta que empiece a dorar, gambas 2 min y fuera.'}
     ]}
 };
 
@@ -301,7 +402,44 @@ const SHOP = {
 
   /* ── Aceites y frutos secos ── */
   aove:          {sec:6, pack:1000, un:'litros'},
-  nueces:        {sec:6, pack:200, un:'paquetes de 200 g'}
+  nueces:        {sec:6, pack:200, un:'paquetes de 200 g'},
+
+    /* ── Frutería ── */
+  cebolla:         {sec:0, un:'g', granel:true},
+  ajo:             {sec:0, pack:100, un:'cabezas'},
+  zanahoria:       {sec:0, un:'g', granel:true},
+  pimiento_verde:  {sec:0, un:'g', granel:true},
+  champinones:     {sec:0, pack:250, un:'bandejas de 250 g'},
+  calabacin:       {sec:0, un:'g', granel:true},
+  jengibre:        {sec:0, pack:100, un:'trozos'},
+
+  /* ── Carnicería ── */
+  lomo_cerdo:      {sec:1, un:'g', granel:true},
+
+  /* ── Congelados ── */
+  espinacas:       {sec:2, pack:400, un:'bolsas de 400 g'},
+
+  /* ── Lácteos ── */
+  parmesano:       {sec:3, pack:150, un:'cuñas de 150 g'},
+  mozzarella:      {sec:3, pack:125, un:'bolas de 125 g'},
+  nata_ligera:     {sec:3, pack:200, un:'briks de 200 ml'},
+
+  /* ── Despensa ── */
+  salsa_soja:      {sec:5, pack:150, un:'botellas de 150 ml'},
+  leche_coco:      {sec:5, pack:400, un:'latas de 400 ml'},
+  curry_polvo:     {sec:5, pack:50,  un:'botes'},
+  noodles:         {sec:5, pack:250, un:'paquetes de 250 g'},
+  tomate_triturado:{sec:5, pack:400, un:'briks de 400 g'},
+  pesto:           {sec:5, pack:190, un:'tarros de 190 g'},
+  panko:           {sec:5, pack:200, un:'paquetes de 200 g'},
+  harina:          {sec:5, pack:1000,un:'kg'},
+  maiz_dulce:      {sec:5, pack:150, un:'latas de 150 g'},
+
+  /* ── Frutos secos ── */
+  sesamo:          {sec:6, pack:150, un:'paquetes de 150 g'},
+
+  gambas:          {sec:2, pack:400,  un:'bolsas de 400 g (peladas, congeladas)'},
+  guisantes:       {sec:2, pack:1000, un:'bolsas de 1 kg'}
 };
 
 /* Extras que no salen del menú pero hay que comprar igual */
