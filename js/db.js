@@ -9,7 +9,7 @@
    aunque la app siga creciendo. */
 
 const DB_NAME = 'arnold';
-const DB_VER  = 2;
+const DB_VER  = 3;
 let db = null;
 
 const STORES = {
@@ -20,6 +20,7 @@ const STORES = {
   intake:   {keyPath:'id', idx:['fecha']},              // id = 'YYYY-MM-DD|comida'
   foods:    {keyPath:'id', idx:['barcode']},
   recipes:  {keyPath:'id', auto:true},
+  shopping: {keyPath:'id'},
   settings: {keyPath:'k'}
 };
 
@@ -343,7 +344,7 @@ const Export = {
 
   async backup(){
     const data = {v:DB_VER, exportado:new Date().toISOString()};
-    for(const s of ['body','measures','workouts','runs','intake','foods','recipes','settings'])
+    for(const s of ['body','measures','workouts','runs','intake','foods','recipes','shopping','settings'])
       data[s] = await DB.getAll(s);
     return JSON.stringify(data);
   },
@@ -352,7 +353,7 @@ const Export = {
     const data = JSON.parse(json);
     if(typeof data!=='object' || !Array.isArray(data.body))
       throw new Error('El fichero no es un backup de Arnold.');
-    for(const s of ['body','measures','workouts','runs','intake','foods','recipes','settings']){
+    for(const s of ['body','measures','workouts','runs','intake','foods','recipes','shopping','settings']){
       if(!Array.isArray(data[s]))continue;
       await DB.clear(s);
       const arr = data[s].map(r=>{

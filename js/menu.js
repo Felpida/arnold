@@ -235,3 +235,78 @@ const DAILY_EXTRAS = {
   alcohol:{nota:'1-2 quintos/semana = 90-180 kcal. Irrelevante. Solo registrarlo.'},
   legumbre:{min_semana:2, nota:'Mínimo 2 raciones semanales. Obligatorio sin avena en la dieta.'}
 };
+
+/* ═══════════════════ LISTA DE LA COMPRA ═══════════════════
+   sec    = sección del supermercado, para ordenar la lista
+   factor = multiplicador de gramos del plan → gramos a comprar
+            (ej. muslo de pollo: pesas 100 g sin hueso, compras 143 g con hueso)
+   pack   = tamaño del envase en g/ml, para redondear hacia arriba
+   ud     = peso de una pieza, para contar en unidades en lugar de gramos
+   un     = etiqueta de la unidad de compra */
+
+const SEC = ['Frutería y verdulería','Carnicería','Pescadería y congelados',
+  'Huevos y lácteos','Panadería','Despensa','Aceites y frutos secos'];
+
+const SHOP = {
+  /* ── Frutería y verdulería ── */
+  platano:       {sec:0, ud:120, un:'ud'},
+  naranja:       {sec:0, ud:200, un:'ud'},
+  manzana:       {sec:0, ud:180, un:'ud'},
+  pepino:        {sec:0, ud:300, un:'ud'},
+  patata:        {sec:0, un:'g', granel:true},
+  boniato:       {sec:0, un:'g', granel:true},
+  ensalada:      {sec:0, pack:250, un:'bolsas de 250 g'},
+  pimiento_asado:{sec:0, pack:300, un:'frascos de 300 g'},
+
+  /* ── Carnicería ── */
+  muslo_pollo:   {sec:1, factor:1.43, un:'g con hueso', granel:true,
+                  nota:'Jamoncitos o muslos con hueso. Deshuesar en casa: 10 min por tanda y sale a 2,29 €/100 g de proteína.'},
+  pechuga_pollo: {sec:1, un:'g', granel:true},
+  pavo_picado:   {sec:1, pack:500, un:'bandejas de 500 g'},
+  ternera_5:     {sec:1, pack:500, un:'bandejas de 500 g'},
+  jamon_cocido:  {sec:1, pack:200, un:'paquetes de 200 g'},
+
+  /* ── Pescadería y congelados ── */
+  merluza:       {sec:2, pack:700, un:'bolsas de 700 g (congelada)'},
+  lubina:        {sec:2, un:'g', granel:true},
+  salmon:        {sec:2, un:'g', granel:true,
+                  nota:'Máximo 1 vez por semana: es el plato más caro del recetario.'},
+  atun_natural:  {sec:2, ud:52, un:'latas',
+                  nota:'52 g escurridos por lata. Compra el pack, sale más barato.'},
+  verdura_cong:  {sec:2, pack:1000, un:'bolsas de 1 kg'},
+
+  /* ── Huevos y lácteos ── */
+  huevo:         {sec:3, ud:55, un:'huevos', pack_ud:12},
+  claras:        {sec:3, pack:1000, un:'briks de 1 L'},
+  queso_batido:  {sec:3, pack:500, un:'envases de 500 g'},
+  skyr:          {sec:3, pack:450, un:'envases de 450 g'},
+  yogur_griego0: {sec:3, pack:500, un:'packs de 4×125 g'},
+  leche_desn:    {sec:3, pack:1000, un:'litros'},
+  queso_havarti: {sec:3, pack:200, un:'paquetes de 200 g'},
+
+  /* ── Panadería ── */
+  pan_integral:  {sec:4, pack:400, un:'barras de 400 g'},
+  pan_molde_int: {sec:4, pack:460, un:'bolsas de 460 g'},
+  pan_pita:      {sec:4, pack:320, un:'paquetes de 4'},
+
+  /* ── Despensa ── */
+  arroz:         {sec:5, pack:1000, un:'kg'},
+  pasta:         {sec:5, pack:500, un:'paquetes de 500 g'},
+  garbanzos_bote:{sec:5, ud:250, un:'botes',
+                  nota:'250 g escurridos por bote de 400 g.'},
+  alubias_bote:  {sec:5, ud:250, un:'botes'},
+  tortitas_arroz:{sec:5, pack:130, un:'paquetes de 130 g'},
+  tomate_frito:  {sec:5, pack:400, un:'briks de 400 g'},
+  miel:          {sec:5, pack:500, un:'tarros de 500 g'},
+
+  /* ── Aceites y frutos secos ── */
+  aove:          {sec:6, pack:1000, un:'litros'},
+  nueces:        {sec:6, pack:200, un:'paquetes de 200 g'}
+};
+
+/* Extras que no salen del menú pero hay que comprar igual */
+const SHOP_FIJOS = [
+  {sec:5, n:'Café', cant:'1 paquete'},
+  {sec:5, n:'Sal, especias, vinagre', cant:'según necesites'},
+  {sec:6, n:'Aceite de girasol (para cocinar)', cant:'opcional, abarata el AOVE'}
+];

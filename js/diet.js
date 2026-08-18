@@ -27,7 +27,7 @@ const Diet = {
 
     document.querySelectorAll('#dietTabs button').forEach(b=>b.onclick = ()=>{
       document.querySelectorAll('#dietTabs button').forEach(x=>x.classList.toggle('on',x===b));
-      ['cal','rec','food'].forEach(k=>el('dt-'+k).classList.toggle('hide', k!==b.dataset.dt));
+      ['cal','shop','rec','food'].forEach(k=>el('dt-'+k).classList.toggle('hide', k!==b.dataset.dt));
     });
 
     el('bScan').onclick     = ()=>this.scanStart();
@@ -37,6 +37,10 @@ const Diet = {
     el('bSaveFood').onclick = ()=>this.saveFood();
     el('bAddRecItem').onclick = ()=>this.addRecItem();
     el('bSaveRec').onclick  = ()=>this.saveRecipe();
+    el('shDesde').value = this.nextMonday();
+    el('bGenShop').onclick = ()=>this.genShop();
+    el('shDesde').onchange = ()=>this.renderShop();
+    el('shDias').onchange  = ()=>this.renderShop();
 
     await this.reload();
   },
@@ -49,6 +53,8 @@ const Diet = {
     this.renderCalendar();
     this.renderFoods();
     this.renderRecipes();
+
+    await this.renderShop();
   },
 
   moveMonth(n){
@@ -504,5 +510,136 @@ const Diet = {
     this.recDraft = [];
     await this.reload();
     flash(el('mRec'),`Receta guardada: ${n} ✓`);
+  },
+
+    /* ═══════════════════ LISTA DE LA COMPRA ═══════════════════ */
+
+  /* Lunes de la próxima semana, que es cuando empieza cualquier compra útil */
+  nextMonday(){
+    const t = D.today();
+    const ws = D.weekStart(t);
+    return D.dow(t)===0 ? D.add(ws,7) : D.add(ws,7);
+  },
+
+  shopRange(){
+    const desde = el('shDesde').value || this.nextMonday();
+    const dias  = +el('shDias').value || 7;
+    return {desde, hasta:D.add(desde, dias-1), dias};
+  },
+
+  /* Agrega todos los ingredientes del rango.
+     Usa el plato REGISTRADO si el día ya está confirmado, y el
+     PLANIFICADO si aún no lo está. */
+  buildShop(desde, hasta){
+    const g = {};
+    for(let f=desde; f<=hasta; f=D.add(f,1)){
+      MEAL_ORDER.forEach(c=>{
+        const rec = this.intakeOf(f,c);
+        const items = rec ? rec.items : this.plannedOp(f,c).it;
+        (items||[]).forEach(([id,gr])=>{ g[id] = (g[id]||0) + gr; });
+      });
+    }
+    return g;
+  },
+
+  /* Convierte gramos del plan en unidades de compra */
+  toPurchase(id, gr){
+    const s = SHOP[id] || {sec:5, un:'g', granel:true};
+    const bruto = gr * (s.factor || 1);
+
+    if(s.ud){
+      const n = Math.ceil(bruto / s.ud);
+      const extra = s.pack_ud ? ` (${Math.ceil(n/s.pack_ud)} ${s.pack_ud===12?'docena(s)':'pack(s)'})` : '';
+      return {sec:s.sec, txt:`${n} ${s.un}${extra}`, nota:s.nota, raw:bruto};
+    }
+    if(s.pack){
+      const n = Math.ceil(bruto / s.pack);
+      const kg = s.pack>=1000;
+      return {sec:s.sec, txt:`${n} ${s.un}` + (n>1?` · ${kg?(n*s.pack/1000).toFixed(1)+' kg':(n*s.pack)+' g'}`:''),
+        nota:s.nota, raw:bruto};
+    }
+    // A granel: se redondea a los 50 g siguientes
+    const r = Math.ceil(bruto/50)*50;
+    return {sec:s.sec, txt: r>=1000 ? (r/1000).toFixed(2)+' kg' : r+' g', nota:s.nota, raw:bruto};
+  },
+
+  async genShop(){
+    const {desde, hasta, dias} = this.shopRange();
+    const g = this.buildShop(desde, hasta);
+    const items = Object.entries(g)
+      .filter(([,gr])=>gr>0)
+      .map(([id,gr])=>{
+        const p = this.toPurchase(id, gr);
+        return {id, n:this.foods[id]?.n || id, gr:Math.round(gr),
+          sec:p.sec, txt:p.txt, nota:p.nota, ok:false};
+      });
+    await DB.put('shopping',{id:desde+'|'+hasta, desde, hasta, dias, items,
+      creado:new Date().toISOString()});
+    await this.renderShop();
+  },
+
+  async renderShop(){
+    const {desde, hasta} = this.shopRange();
+    el('shTitle').textContent = `${D.label(desde)} → ${D.label(hasta)}`;
+    const L = await DB.get('shopping', desde+'|'+hasta);
+
+    if(!L){
+      el('shList').innerHTML = `<p class="hint">Sin lista generada para este rango.
+        Pulsa <strong>Generar lista</strong> y la app sumará todos los ingredientes
+        de los ${this.shopRange().dias} días.</p>`;
+      return;
+    }
+
+    const porSec = {};
+    L.items.forEach(it=>{ (porSec[it.sec] = porSec[it.sec] || []).push(it); });
+    SHOP_FIJOS.forEach(f=>{
+      (porSec[f.sec] = porSec[f.sec] || []).push({fijo:true, n:f.n, txt:f.cant, ok:false});
+    });
+
+    const total = L.items.length, hechos = L.items.filter(i=>i.ok).length;
+
+    el('shList').innerHTML = `
+      <p class="hint">Generada el ${D.label(L.creado.slice(0,10))} ·
+        <strong>${hechos}/${total}</strong> productos marcados</p>
+      ${SEC.map((sn,si)=>{
+        const its = porSec[si]; if(!its || !its.length) return '';
+        return `<h4 class="sub">${sn}</h4>
+          ${its.map(it=>`<label class="chk shitem ${it.ok?'done':''}">
+            <input type="checkbox" ${it.ok?'checked':''}
+              ${it.fijo?'disabled':`data-sh="${it.id}"`}>
+            <span><strong>${it.n}</strong> — ${it.txt}
+            ${it.gr?`<br><span class="hint">${it.gr} g en el plan</span>`:''}
+            ${it.nota?`<br><span class="hint">${it.nota}</span>`:''}</span>
+          </label>`).join('')}`;
+      }).join('')}
+      <div class="row c2" style="margin-top:14px">
+        <button class="b-info" id="shShare">Compartir lista</button>
+        <button class="b-bad" id="shReset">Desmarcar todo</button>
+      </div>`;
+
+    el('shList').querySelectorAll('[data-sh]').forEach(cb=>cb.onchange = async()=>{
+      const L2 = await DB.get('shopping', desde+'|'+hasta);
+      const it = L2.items.find(x=>x.id===cb.dataset.sh);
+      if(it) it.ok = cb.checked;
+      await DB.put('shopping', L2);
+      await this.renderShop();
+    });
+
+    el('shShare').onclick = async()=>{
+      const txt = `LISTA DE LA COMPRA · ${D.label(desde)} → ${D.label(hasta)}\n\n` +
+        SEC.map((sn,si)=>{
+          const its = porSec[si]; if(!its || !its.length) return '';
+          return sn.toUpperCase()+'\n' + its.map(i=>`  [ ] ${i.n} — ${i.txt}`).join('\n');
+        }).filter(Boolean).join('\n\n');
+      if(navigator.share){ try{ await navigator.share({text:txt, title:'Lista de la compra'}); return; }catch(e){} }
+      await shareFiles([{name:'compra.txt', text:txt, mime:'text/plain'}]);
+    };
+
+    el('shReset').onclick = async()=>{
+      const L2 = await DB.get('shopping', desde+'|'+hasta);
+      L2.items.forEach(i=>i.ok = false);
+      await DB.put('shopping', L2);
+      await this.renderShop();
+    };
   }
 };
