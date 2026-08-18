@@ -1,4 +1,5 @@
 'use strict';
+const APP_VER = '2026.08.18-3';
 
 /* ═══════════════════ ARRANQUE Y NAVEGACIÓN ═══════════════════ */
 
@@ -24,8 +25,20 @@ const App = {
     await Diet.init();
     await this.renderHoy();
 
-    if('serviceWorker' in navigator)
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+        /* Actualización automática: cuando el service worker nuevo toma el control,
+       la página se recarga una sola vez. Sin esto hay que cerrar y reabrir la app
+       dos veces para ver cada cambio. */
+    if('serviceWorker' in navigator){
+      let recargando = false;
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        if(recargando) return;
+        recargando = true;
+        location.reload();
+      });
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg=>reg.update())
+        .catch(()=>{});
+    }
   },
 
   fatal(msg){
@@ -183,6 +196,8 @@ const App = {
         <p class="hint">Faltan <strong>${D.diffDays(t,hito.f)} días</strong></p>
         <p class="note">${hito.t}</p>`;
     }
+
+    el('appVer').textContent = 'Arnold ' + APP_VER;
   },
 
   async saveDay(){
