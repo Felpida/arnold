@@ -3,170 +3,246 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#f7f8fa">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
 <title>Arnold</title>
 <style>
 :root{
-  --bg:#0f1115; --card:#171a21; --card2:#1e222b; --line:#2a2f3a;
-  --tx:#e8ecf1; --tx2:#98a2b3; --ac:#4ade80; --ac2:#38bdf8;
-  --warn:#fbbf24; --bad:#f87171; --r:14px;
+  /* Superficies */
+  --bg:#f5f7fa; --card:#ffffff; --card2:#eef1f6; --line:#dde3ea; --line2:#c9d2dd;
+  /* Texto */
+    --tx:#1d2733; --tx2:#64748b; --tx3:#94a3b8;
+  /* Acentos: verde = principal/gym · azul = running/datos · ámbar = dieta/atención · rojo = problema */
+  --ac:#2e9e6b;   --ac-bg:#e8f6ef;  --ac-ln:#b6e2cd;
+  --info:#3b82c4; --info-bg:#e9f1fa; --info-ln:#bdd7ee;
+  --warn:#d08700;  --warn-bg:#fdf4e3; --warn-ln:#f0dcae;
+  --bad:#d1524a;   --bad-bg:#fceceb; --bad-ln:#f2c4c1;
+  --r:14px;
+  --sh:0 1px 2px rgba(29,39,51,.06), 0 1px 8px rgba(29,39,51,.04);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--tx);
-  font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
-  padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  font:16px/1.5 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+
 h1{font-size:19px;margin:0}
-h2{font-size:13px;margin:0 0 10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
+h2{font-size:12px;margin:0 0 10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em}
 h3{font-size:17px;margin:0 0 8px}
 h4{font-size:15px;margin:0 0 6px}
-h4.sub{margin:20px 0 8px;color:var(--tx2);font-size:13px;text-transform:uppercase;
-  letter-spacing:.06em;display:flex;justify-content:space-between}
-h4.sub em{font-style:normal;color:var(--ac);text-transform:none;letter-spacing:0}
-header{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);
-  padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+h4.sub{margin:18px 0 8px;color:var(--tx2);font-size:12px;text-transform:uppercase;
+  letter-spacing:.07em;display:flex;justify-content:space-between;align-items:baseline}
+h4.sub em{font-style:normal;color:var(--ac);text-transform:none;letter-spacing:0;font-weight:600}
+
+header{position:sticky;top:0;z-index:30;background:rgba(245,247,250,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
   display:flex;justify-content:space-between;align-items:center;gap:10px}
-header small{color:var(--tx2);font-size:12px}
-main{padding:16px;max-width:660px;margin:0 auto}
+header small{color:var(--tx2);font-size:12px;text-transform:capitalize}
+.hgroup{display:flex;align-items:center;gap:8px}
+.chip{font-size:11px;padding:5px 10px;border-radius:999px;background:var(--card);
+  border:1px solid var(--line);color:var(--tx2);white-space:nowrap;font-weight:600}
+.bell{position:relative;width:40px;height:40px;padding:0;border-radius:12px;
+  background:var(--card);border:1px solid var(--line);display:grid;place-items:center;flex:0 0 40px}
+.bell svg{width:20px;height:20px;stroke:var(--tx2);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.bell.has svg{stroke:var(--warn)}
+.bell.has{background:var(--warn-bg);border-color:var(--warn-ln)}
+.badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;border-radius:999px;
+  background:var(--bad);color:#fff;font-size:11px;font-weight:700;display:none;
+  place-items:center;padding:0 5px;line-height:19px;text-align:center}
+.bell.has .badge{display:block}
+
+main{padding:14px;max-width:660px;margin:0 auto}
 main>section{display:none}
 main>section.on{display:block}
 .hide{display:none !important}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
-.card2{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
-.card.hl{border-color:#1f4d33;background:#121c16}
-.card.warn-card{border-color:#5c4611;background:#1c1809}
+/* ── Tarjetas ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+.card2{background:var(--card2);border:1px solid var(--line);border-radius:12px;
+  padding:12px;margin-bottom:10px}
+.card.hl{border-color:var(--ac-ln);background:var(--ac-bg)}
+.card.warn-card{border-color:var(--warn-ln);background:var(--warn-bg)}
 
-label{display:block;font-size:13px;color:var(--tx2);margin-bottom:5px}
-input,select,textarea,button{font:inherit;color:var(--tx);background:var(--card2);
-  border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
-input[type=file]{padding:8px}
+/* ── Acordeones ── */
+.acc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh);overflow:hidden}
+.acc>summary{padding:14px;font-weight:600;font-size:15px;cursor:pointer;
+  list-style:none;display:flex;align-items:center;gap:10px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary::after{content:'';width:8px;height:8px;margin-left:auto;flex:0 0 8px;
+  border-right:2px solid var(--tx3);border-bottom:2px solid var(--tx3);
+  transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.acc[open]>summary::after{transform:rotate(225deg) translateY(-2px)}
+.acc>summary .lead{width:4px;height:20px;border-radius:3px;background:var(--line2);flex:0 0 4px}
+.acc>summary .sum{font-size:12px;color:var(--tx2);font-weight:500;margin-left:auto;
+  padding-right:4px;font-variant-numeric:tabular-nums}
+.acc[open]>summary{border-bottom:1px solid var(--line)}
+.acc-body{padding:14px}
+.acc.a-gym  >summary .lead{background:var(--ac)}
+.acc.a-run  >summary .lead{background:var(--info)}
+.acc.a-diet >summary .lead{background:var(--warn)}
+.acc.a-body >summary .lead{background:var(--info)}
+.acc.a-alert>summary .lead{background:var(--bad)}
+
+/* ── Formularios ── */
+label{display:block;font-size:12.5px;color:var(--tx2);margin-bottom:5px;font-weight:500}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--card);
+  border:1px solid var(--line2);border-radius:10px;padding:11px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--info);
+  box-shadow:0 0 0 3px var(--info-bg)}
+input.key{border-left:3px solid var(--info)}
+input[type=file]{padding:8px;background:var(--card2)}
 textarea{min-height:60px;resize:vertical}
-button{cursor:pointer;text-align:center}
-button:disabled{opacity:.4}
-button.primary{background:var(--ac);color:#08130c;border-color:var(--ac);font-weight:650}
-button.ghost{background:transparent}
-button.link{background:none;border:none;color:var(--ac2);padding:0 0 10px;width:auto;text-align:left}
-button.mini{width:auto;padding:7px 10px;font-size:13px}
-button.mini.ok{background:var(--ac);color:#08130c;border-color:var(--ac)}
+
+button{font:inherit;cursor:pointer;text-align:center;border-radius:10px;padding:11px 12px;
+  width:100%;background:var(--card);border:1px solid var(--line2);color:var(--tx);font-weight:500}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:650;
+  box-shadow:0 1px 3px rgba(46,158,107,.3)}
+button.b-info{background:var(--info-bg);color:#215a8c;border-color:var(--info-ln);font-weight:600}
+button.b-warn{background:var(--warn-bg);color:#8a5a00;border-color:var(--warn-ln);font-weight:600}
+button.b-bad{background:var(--bad-bg);color:#a1352e;border-color:var(--bad-ln);font-weight:600}
+button.ghost{background:transparent;border-color:var(--line)}
+button.link{background:none;border:none;color:var(--info);padding:0 0 10px;width:auto;
+  text-align:left;font-weight:600}
+button.mini{width:auto;padding:8px 11px;font-size:13px}
+button.mini.ok{background:var(--ac);color:#fff;border-color:var(--ac)}
+
 .row{display:grid;gap:10px;margin-bottom:12px}
 .row.c2{grid-template-columns:1fr 1fr}
 .row.c3{grid-template-columns:1fr 1fr 1fr}
 
-.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.kpi>div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
-.kpi b{display:block;font-size:23px;font-variant-numeric:tabular-nums;line-height:1.2}
-.kpi span{font-size:10.5px;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em}
+/* ── KPI ── */
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi>div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px;box-shadow:var(--sh)}
+.kpi b{display:block;font-size:23px;font-variant-numeric:tabular-nums;line-height:1.25}
+.kpi span{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
 .hint{font-size:12.5px;color:var(--tx2);margin:6px 0}
-.note{font-size:12.5px;color:var(--tx2);border-left:2px solid var(--line);
-  padding-left:10px;margin:10px 0;line-height:1.5}
-.ok-msg{font-size:13px;min-height:18px;margin:8px 0 0}
+.note{font-size:12.5px;color:var(--tx2);border-left:3px solid var(--line2);
+  background:var(--card2);border-radius:0 8px 8px 0;padding:9px 11px;margin:10px 0;line-height:1.5}
+.ok-msg{font-size:13px;min-height:18px;margin:8px 0 0;font-weight:600}
 .tag{display:inline-block;font-size:10.5px;padding:3px 8px;border-radius:999px;
-  background:var(--card2);border:1px solid var(--line);color:var(--tx2)}
-.tag.ok{color:var(--ac);border-color:#1f4d33}
-.tag.warn{color:var(--warn);border-color:#5c4611}
-.tag.bad{color:var(--bad);border-color:#5c1d1d}
-.verdict{font-size:14px;padding:10px 12px;border-radius:10px;background:var(--card2);margin:10px 0}
-.verdict.ok{color:var(--ac);background:#121c16}
-.verdict.warn{color:var(--warn);background:#1c1809}
-.verdict.bad{color:var(--bad);background:#1c1010}
-.up{color:var(--ac)} .down{color:var(--ac2)}
+  background:var(--card2);border:1px solid var(--line);color:var(--tx2);font-weight:600}
+.tag.ok{color:#1d7a51;background:var(--ac-bg);border-color:var(--ac-ln)}
+.tag.warn{color:#8a5a00;background:var(--warn-bg);border-color:var(--warn-ln)}
+.tag.bad{color:#a1352e;background:var(--bad-bg);border-color:var(--bad-ln)}
+.verdict{font-size:14px;padding:11px 12px;border-radius:10px;background:var(--card2);
+  margin:10px 0;border:1px solid var(--line)}
+.verdict.ok{color:#1d7a51;background:var(--ac-bg);border-color:var(--ac-ln)}
+.verdict.warn{color:#8a5a00;background:var(--warn-bg);border-color:var(--warn-ln)}
+.verdict.bad{color:#a1352e;background:var(--bad-bg);border-color:var(--bad-ln)}
+.up{color:var(--ac);font-weight:600} .down{color:var(--info);font-weight:600}
 
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{color:var(--tx2);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
+td,th{padding:9px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:none}
+th{color:var(--tx2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 ol.pasos{font-size:13px;color:var(--tx2);padding-left:20px;margin:8px 0}
 ol.pasos li{margin-bottom:5px}
 
-/* Calendario */
+/* ── Calendario ── */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.cal-nav button{width:44px}
+.cal-nav button{width:44px;font-size:20px;line-height:1;padding:8px}
 .cal-nav strong{text-transform:capitalize;font-size:15px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-h{text-align:center;font-size:10.5px;color:var(--tx2);padding-bottom:4px}
-.cal-d{aspect-ratio:1/1.15;padding:4px 2px;border-radius:9px;background:var(--card2);
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;
-  font-size:13px;font-variant-numeric:tabular-nums;overflow:hidden}
-.cal-d.is-today{border-color:var(--ac);border-width:2px}
-.cal-d.is-future{opacity:.55}
-.cal-d em{font-style:normal;font-size:9px;color:var(--tx2)}
-.dots{display:flex;gap:2px;height:7px;align-items:center}
+.cal-h{text-align:center;font-size:10px;color:var(--tx2);padding-bottom:4px;font-weight:700}
+.cal-d{aspect-ratio:1/1.12;padding:5px 2px;border-radius:10px;background:var(--card2);
+  border:1px solid transparent;display:flex;flex-direction:column;align-items:center;
+  gap:2px;font-size:13px;font-variant-numeric:tabular-nums;overflow:hidden;font-weight:600}
+.cal-d.is-today{border-color:var(--ac);background:var(--ac-bg)}
+.cal-d.is-future{opacity:.6;font-weight:500}
+.cal-d em{font-style:normal;font-size:9px;color:var(--tx2);font-weight:600}
+.dots{display:flex;gap:3px;height:8px;align-items:center}
 .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
 .dot.ok{background:var(--ac)} .dot.draft{background:var(--warn)}
-.dot.plan{background:transparent;border:1px solid var(--tx2)}
-.dot.run{background:var(--ac2)} .dot.runplan{background:transparent;border:1px solid var(--ac2)}
+.dot.plan{background:transparent;border:1.5px solid var(--tx3)}
+.dot.run{background:var(--info)} .dot.runplan{background:transparent;border:1.5px solid var(--info)}
+.leyenda{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--tx2);margin-top:10px}
+.leyenda span{display:flex;align-items:center;gap:5px}
 
-/* Registro de series */
+/* ── Registro de series ── */
 .setgrid{margin-top:10px}
-.set-h,.set{display:grid;grid-template-columns:24px 1fr 1fr 1fr 42px;gap:6px;align-items:center}
+.set-h,.set{display:grid;grid-template-columns:22px 1fr 1fr 1fr 44px;gap:6px;align-items:center}
 .set-h{margin-bottom:6px}
-.set-h span{font-size:10px;color:var(--tx2);text-align:center;text-transform:uppercase}
+.set-h span{font-size:9.5px;color:var(--tx2);text-align:center;text-transform:uppercase;font-weight:700}
 .set{margin-bottom:7px}
-.set i{font-style:normal;font-size:12px;color:var(--tx2);text-align:center}
-.set input{padding:10px 6px;text-align:center}
-.pip{width:9px;height:9px;border-radius:50%;background:var(--line);display:inline-block;margin-right:4px}
-.pip.ok{background:var(--ac)} .pip.cur{outline:2px solid var(--ac2);outline-offset:1px}
+.set i{font-style:normal;font-size:12px;color:var(--tx2);text-align:center;font-weight:700}
+.set input{padding:10px 4px;text-align:center;font-weight:600}
+.pip{width:9px;height:9px;border-radius:50%;background:var(--line2);display:inline-block;margin-right:4px}
+.pip.ok{background:var(--ac)} .pip.cur{outline:2px solid var(--info);outline-offset:2px}
 
-/* Opciones (sustitutos, cambio de plato) */
-.opt{display:block;text-align:left;margin-bottom:9px;padding:12px;line-height:1.4}
-.opt.sel{border-color:var(--ac)}
-.opt.swap.ok{border-left:3px solid var(--ac)}
-.opt.swap.warn{border-left:3px solid var(--warn)}
-.opt.swap.bad{border-left:3px solid var(--bad)}
+/* ── Opciones ── */
+.opt{display:block;text-align:left;margin-bottom:9px;padding:12px;line-height:1.45;background:var(--card)}
+.opt.sel{border-color:var(--ac);background:var(--ac-bg)}
+.opt.swap.ok{border-left:4px solid var(--ac)}
+.opt.swap.warn{border-left:4px solid var(--warn)}
+.opt.swap.bad{border-left:4px solid var(--bad)}
 
-/* Filas de comida */
-.mealrow{display:grid;grid-template-columns:1fr auto 28px;gap:10px;align-items:center;
-  text-align:left;margin-bottom:8px;padding:12px}
-.mealrow.plan{border-left:3px solid var(--ac)}
-.mealrow.modificado{border-left:3px solid var(--warn)}
-.mealmac{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
-.state{font-size:18px;text-align:center;color:var(--tx2)}
-.mealrow.plan .state,.mealrow.modificado .state{color:var(--ac)}
+/* ── Comidas ── */
+.mealrow{display:grid;grid-template-columns:1fr auto 26px;gap:10px;align-items:center;
+  text-align:left;margin-bottom:8px;padding:12px;background:var(--card)}
+.mealrow.pendiente{border-left:4px solid var(--line2)}
+.mealrow.plan{border-left:4px solid var(--ac);background:var(--ac-bg)}
+.mealrow.modificado{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.mealmac{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--tx2)}
+.state{font-size:17px;text-align:center;color:var(--tx3)}
+.mealrow.plan .state{color:var(--ac)} .mealrow.modificado .state{color:var(--warn)}
 
-/* Barras de progreso */
-.bar{display:grid;grid-template-columns:110px 1fr auto;gap:8px;align-items:center;
-  margin-bottom:7px;font-size:12.5px}
-.bar .track{height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
-.bar .track i{display:block;height:100%;border-radius:99px}
+/* ── Barras ── */
+.bar{display:grid;grid-template-columns:112px 1fr auto;gap:9px;align-items:center;
+  margin-bottom:8px;font-size:12.5px}
+.bar>span{color:var(--tx2)}
+.bar .track{height:9px;background:var(--card2);border-radius:99px;overflow:hidden}
+.bar .track i{display:block;height:100%;border-radius:99px;transition:width .3s}
 .bar .track i.ok{background:var(--ac)} .bar .track i.warn{background:var(--warn)}
 .bar .track i.bad{background:var(--bad)}
-.bar em{font-style:normal;font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--tx2)}
-.bar em.ok{color:var(--ac)} .bar em.warn{color:var(--warn)} .bar em.bad{color:var(--bad)}
+.bar em{font-style:normal;font-variant-numeric:tabular-nums;font-size:11.5px;
+  color:var(--tx2);font-weight:600}
+.bar em.ok{color:var(--ac)} .bar em.warn{color:#8a5a00} .bar em.bad{color:var(--bad)}
 
-/* Gráficas */
+/* ── Gráficas ── */
 .chart{width:100%;height:auto;display:block;margin:6px 0}
 .axis{fill:var(--tx2);font-size:10px}
 
-/* Molestias */
-.mol{border-bottom:1px solid var(--line);padding:8px 0}
-.chk{display:flex;align-items:center;gap:10px;color:var(--tx);font-size:14px;margin:0}
+/* ── Molestias ── */
+.mol{border-bottom:1px solid var(--line);padding:9px 0}
+.chk{display:flex;align-items:center;gap:10px;color:var(--tx);font-size:14px;margin:0;font-weight:500}
 .chk input{width:20px;height:20px;flex:0 0 20px}
 .mol-d{margin-top:10px}
 
-/* Sub-pestañas */
-.subtabs{display:flex;gap:6px;margin-bottom:14px}
-.subtabs button{padding:9px 6px;font-size:13px}
-.subtabs button.on{background:var(--ac);color:#08130c;border-color:var(--ac);font-weight:600}
+/* ── Sub-pestañas ── */
+.subtabs{display:flex;gap:6px;margin-bottom:12px;background:var(--card2);
+  padding:4px;border-radius:12px}
+.subtabs button{padding:9px 6px;font-size:13px;background:transparent;border:none;
+  border-radius:9px;color:var(--tx2);font-weight:600}
+.subtabs button.on{background:var(--card);color:var(--tx);box-shadow:var(--sh)}
 
-/* Modales */
-.modal{position:fixed;inset:0;z-index:60;background:rgba(8,10,14,.72);
-  display:none;align-items:flex-end;justify-content:center;padding:0}
+/* ── Modales ── */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(29,39,51,.4);
+  display:none;align-items:flex-end;justify-content:center}
 .modal.on{display:flex}
-.modal-box{background:var(--bg);border:1px solid var(--line);border-radius:18px 18px 0 0;
-  width:100%;max-width:660px;max-height:92vh;overflow-y:auto;
-  padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.modal-box{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:660px;
+  max-height:92vh;overflow-y:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:0 -8px 32px rgba(29,39,51,.18)}
 .modal-close{width:auto;padding:8px 14px;float:right;margin:-4px -4px 8px 8px}
 
-/* Escáner */
 #scanVideo{width:100%;border-radius:12px;background:#000;aspect-ratio:4/3;object-fit:cover}
 
-/* Navegación inferior */
+/* ── Navegación inferior ── */
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);
-  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:40}
-nav button{flex:1;border:0;border-radius:0;background:transparent;color:var(--tx2);
-  padding:12px 2px 10px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;align-items:center}
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:40;
+  box-shadow:0 -2px 12px rgba(29,39,51,.05)}
+nav button{flex:1;border:0;border-radius:0;background:transparent;color:var(--tx3);
+  padding:11px 2px 9px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;
+  align-items:center;font-weight:600}
 nav button.on{color:var(--ac)}
 nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   stroke-linecap:round;stroke-linejoin:round}
@@ -176,15 +252,19 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
 
 <header>
   <div><h1 id="hTitle">Hoy</h1><small id="hDate"></small></div>
-  <span class="tag" id="hPhase">—</span>
+  <div class="hgroup">
+    <span class="chip" id="hPhase">—</span>
+    <button class="bell" id="bPend" aria-label="Pendiente">
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+      <span class="badge" id="pendCount">0</span>
+    </button>
+  </div>
 </header>
 
 <main>
 
 <!-- ══════════════════ HOY ══════════════════ -->
 <section id="v-hoy" class="on">
-  <div id="reminders"></div>
-
   <div class="kpi">
     <div><span>Peso hoy</span><b id="kPeso">—</b></div>
     <div><span>Media 7 días</span><b id="kMedia">—</b></div>
@@ -193,42 +273,64 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   </div>
   <div id="hoyObj"></div>
 
-  <div class="card">
-    <h2>Registro del día</h2>
-    <div class="row c2">
-      <div><label>Peso (kg) · en ayunas</label>
-        <input id="fPeso" type="number" step="0.1" inputmode="decimal" placeholder="80.0"></div>
-      <div><label>Pasos</label>
-        <input id="fPasos" type="number" inputmode="numeric" placeholder="5000"></div>
-    </div>
-    <div class="row c2">
-      <div><label>Sueño (horas)</label>
-        <input id="fSueno" type="number" step="0.5" inputmode="decimal" placeholder="7"></div>
-      <div><label>Me acosté a las</label><input id="fDormir" type="time"></div>
-    </div>
-    <div class="row c3">
-      <div><label>kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
-      <div><label>Proteína g</label><input id="fProt" type="number" inputmode="numeric"></div>
-      <div><label>Hidratos g</label><input id="fHc" type="number" inputmode="numeric"></div>
-    </div>
-    <div class="row c3">
-      <div><label>Grasa g</label><input id="fGrasa" type="number" inputmode="numeric"></div>
-      <div><label>Fibra g</label><input id="fFibra" type="number" inputmode="numeric"></div>
-      <div><label>Menú</label><select id="fAdh">
-        <option value="">—</option><option value="completo">Completo</option>
-        <option value="parcial">Parcial</option><option value="no">No cumplido</option>
-      </select></div>
-    </div>
-    <div class="row"><div><label>Notas · desviaciones, molestias, contexto</label>
-      <textarea id="fNotas" placeholder="Ej: comí fuera, 2 cervezas. Hombro dcho bien."></textarea></div></div>
-    <button class="primary" id="bSaveDay">Guardar el día</button>
-    <p class="ok-msg" id="mDay"></p>
-  </div>
+  <details class="acc a-gym" id="accSesion" open>
+    <summary><i class="lead"></i>Entrenamiento de hoy<span class="sum" id="sumSesion"></span></summary>
+    <div class="acc-body" id="hoySesion"></div>
+  </details>
 
-  <div class="card" id="hoySesion"></div>
-  <div class="card" id="hoyRun"></div>
-  <div class="card" id="hoyMenu"></div>
-  <div class="card" id="hoyHito"></div>
+  <details class="acc a-diet" id="accMenu">
+    <summary><i class="lead"></i>Menú de hoy<span class="sum" id="sumMenu"></span></summary>
+    <div class="acc-body" id="hoyMenu"></div>
+  </details>
+
+  <details class="acc a-run" id="accRun">
+    <summary><i class="lead"></i>Running de hoy<span class="sum" id="sumRun"></span></summary>
+    <div class="acc-body" id="hoyRun"></div>
+  </details>
+
+  <details class="acc a-body" id="accDay">
+    <summary><i class="lead"></i>Registro del día<span class="sum" id="sumDay"></span></summary>
+    <div class="acc-body">
+      <div class="row c2">
+        <div><label>Peso (kg) · en ayunas</label>
+          <input id="fPeso" class="key" type="number" step="0.1" inputmode="decimal" placeholder="80.0"></div>
+        <div><label>Pasos</label>
+          <input id="fPasos" type="number" inputmode="numeric" placeholder="5000"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Sueño (horas)</label>
+          <input id="fSueno" type="number" step="0.5" inputmode="decimal" placeholder="7"></div>
+        <div><label>Me acosté a las</label><input id="fDormir" type="time"></div>
+      </div>
+      <div class="row c3">
+        <div><label>kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
+        <div><label>Proteína g</label><input id="fProt" class="key" type="number" inputmode="numeric"></div>
+        <div><label>Hidratos g</label><input id="fHc" type="number" inputmode="numeric"></div>
+      </div>
+      <div class="row c3">
+        <div><label>Grasa g</label><input id="fGrasa" type="number" inputmode="numeric"></div>
+        <div><label>Fibra g</label><input id="fFibra" type="number" inputmode="numeric"></div>
+        <div><label>Menú</label><select id="fAdh">
+          <option value="">—</option><option value="completo">Completo</option>
+          <option value="parcial">Parcial</option><option value="no">No cumplido</option>
+        </select></div>
+      </div>
+      <div class="row"><div><label>Notas · desviaciones, molestias, contexto</label>
+        <textarea id="fNotas" placeholder="Ej: comí fuera, 2 cervezas. Hombro dcho bien."></textarea></div></div>
+      <button class="primary" id="bSaveDay">Guardar el día</button>
+      <p class="ok-msg" id="mDay"></p>
+    </div>
+  </details>
+
+  <details class="acc a-body" id="accPeso">
+    <summary><i class="lead"></i>Peso · últimos 30 días</summary>
+    <div class="acc-body" id="hoyChart"></div>
+  </details>
+
+  <details class="acc a-gym" id="accHito">
+    <summary><i class="lead"></i>Próximo hito<span class="sum" id="sumHito"></span></summary>
+    <div class="acc-body" id="hoyHito"></div>
+  </details>
 </section>
 
 <!-- ══════════════════ ENTRENO ══════════════════ -->
@@ -242,36 +344,42 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
         <button id="calNext">›</button>
       </div>
       <div id="trainCal"></div>
-      <p class="hint">
-        <span class="dot ok"></span> hecho &nbsp;
-        <span class="dot draft"></span> en curso &nbsp;
-        <span class="dot plan"></span> planificado &nbsp;
-        <span class="dot run"></span> carrera
-      </p>
+      <div class="leyenda">
+        <span><i class="dot ok"></i> hecho</span>
+        <span><i class="dot draft"></i> en curso</span>
+        <span><i class="dot plan"></i> planificado</span>
+        <span><i class="dot run"></i> carrera</span>
+      </div>
     </div>
 
-    <div class="card" id="runPanel">
-      <h2>Running</h2>
-      <div id="runPlanned"></div>
-      <div class="row c2" style="margin-top:12px">
-        <div><label>Fecha</label><input id="runFecha" type="date"></div>
-        <div><label>Tipo</label><select id="runTipo"></select></div>
+    <details class="acc a-run" id="runPanel">
+      <summary><i class="lead"></i>Registrar carrera<span class="sum" id="sumRunPanel"></span></summary>
+      <div class="acc-body">
+        <div id="runPlanned"></div>
+        <div class="row c2" style="margin-top:12px">
+          <div><label>Fecha</label><input id="runFecha" type="date"></div>
+          <div><label>Tipo</label><select id="runTipo"></select></div>
+        </div>
+        <div class="row c3">
+          <div><label>km</label><input id="runKm" class="key" type="number" step="0.01" inputmode="decimal"></div>
+          <div><label>min</label><input id="runMin" class="key" type="number" inputmode="numeric"></div>
+          <div><label>seg</label><input id="runSeg" type="number" inputmode="numeric"></div>
+        </div>
+        <div class="row c3">
+          <div><label>FC media</label><input id="runFc" type="number" inputmode="numeric"></div>
+          <div><label>FC máx</label><input id="runFcMax" type="number" inputmode="numeric"></div>
+          <div><label>RPE</label><input id="runRpe" type="number" min="1" max="10" inputmode="numeric"></div>
+        </div>
+        <div class="row"><div><label>Notas</label><input id="runNotas"></div></div>
+        <button class="primary" id="bSaveRun">Guardar carrera</button>
+        <p class="ok-msg" id="mRun"></p>
       </div>
-      <div class="row c3">
-        <div><label>km</label><input id="runKm" type="number" step="0.01" inputmode="decimal"></div>
-        <div><label>min</label><input id="runMin" type="number" inputmode="numeric"></div>
-        <div><label>seg</label><input id="runSeg" type="number" inputmode="numeric"></div>
-      </div>
-      <div class="row c3">
-        <div><label>FC media</label><input id="runFc" type="number" inputmode="numeric"></div>
-        <div><label>FC máx</label><input id="runFcMax" type="number" inputmode="numeric"></div>
-        <div><label>RPE</label><input id="runRpe" type="number" min="1" max="10" inputmode="numeric"></div>
-      </div>
-      <div class="row"><div><label>Notas</label><input id="runNotas"></div></div>
-      <button class="primary" id="bSaveRun">Guardar carrera</button>
-      <p class="ok-msg" id="mRun"></p>
-      <div id="runHist" style="margin-top:14px"></div>
-    </div>
+    </details>
+
+    <details class="acc a-run">
+      <summary><i class="lead"></i>Historial de carreras</summary>
+      <div class="acc-body" id="runHist"></div>
+    </details>
   </div>
 
   <div id="logView" class="hide">
@@ -284,9 +392,7 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
     <div class="row c2" id="logNav"></div>
   </div>
 
-  <div id="finishView" class="hide">
-    <div id="finishBody"></div>
-  </div>
+  <div id="finishView" class="hide"><div id="finishBody"></div></div>
 </section>
 
 <!-- ══════════════════ DIETA ══════════════════ -->
@@ -312,119 +418,134 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   </div>
 
   <div id="dt-rec" class="hide">
-    <div class="card">
-      <h2>Nueva receta</h2>
-      <div class="row c2">
-        <div><label>Nombre</label><input id="recNombre" placeholder="Ej: Pollo al curry con arroz"></div>
-        <div><label>Raciones</label><input id="recRaciones" type="number" value="1" inputmode="numeric"></div>
+    <details class="acc a-diet">
+      <summary><i class="lead"></i>Crear receta nueva</summary>
+      <div class="acc-body">
+        <div class="row c2">
+          <div><label>Nombre</label><input id="recNombre" placeholder="Ej: Pollo katsu con arroz"></div>
+          <div><label>Raciones</label><input id="recRaciones" type="number" value="1" inputmode="numeric"></div>
+        </div>
+        <label>Ingredientes · desde tu base de alimentos</label>
+        <div id="recItems"></div>
+        <button id="bAddRecItem" class="b-info" style="margin-top:8px">+ añadir ingrediente</button>
+        <label style="margin-top:12px">Pasos · uno por línea</label>
+        <textarea id="recPasos"></textarea>
+        <button class="primary" id="bSaveRec" style="margin-top:10px">Guardar receta</button>
+        <p class="ok-msg" id="mRec"></p>
       </div>
-      <label>Ingredientes · desde tu base de alimentos</label>
-      <div id="recItems"></div>
-      <button id="bAddRecItem" style="margin-top:8px">+ añadir ingrediente</button>
-      <label style="margin-top:12px">Pasos · uno por línea</label>
-      <textarea id="recPasos"></textarea>
-      <button class="primary" id="bSaveRec" style="margin-top:10px">Guardar receta</button>
-      <p class="ok-msg" id="mRec"></p>
-    </div>
+    </details>
     <div id="recList"></div>
   </div>
 
   <div id="dt-food" class="hide">
-    <div class="card">
-      <h2>Escanear código de barras</h2>
-      <button class="primary" id="bScan">Abrir cámara</button>
-      <div id="scanPanel" class="hide" style="margin-top:12px">
-        <video id="scanVideo" playsinline muted></video>
-        <p class="hint" id="scanMsg"></p>
-        <button id="bScanStop">Cerrar cámara</button>
+    <details class="acc a-diet" open>
+      <summary><i class="lead"></i>Escanear código de barras</summary>
+      <div class="acc-body">
+        <button class="primary" id="bScan">Abrir cámara</button>
+        <div id="scanPanel" class="hide" style="margin-top:12px">
+          <video id="scanVideo" playsinline muted></video>
+          <p class="hint" id="scanMsg"></p>
+          <button id="bScanStop" class="b-bad">Cerrar cámara</button>
+        </div>
+        <div class="row c2" style="margin-top:12px">
+          <div><label>O teclea el código</label>
+            <input id="barcodeManual" inputmode="numeric" placeholder="8480000000000"></div>
+          <div><label>&nbsp;</label><button id="bBarcodeGo" class="b-info">Buscar</button></div>
+        </div>
+        <p class="hint">Datos de Open Food Facts, la misma base que usa Yuka. Cada producto
+          escaneado se guarda para siempre y a partir de la segunda vez funciona sin internet.</p>
       </div>
-      <div class="row c2" style="margin-top:12px">
-        <div><label>O teclea el código</label>
-          <input id="barcodeManual" inputmode="numeric" placeholder="8480000000000"></div>
-        <div><label>&nbsp;</label><button id="bBarcodeGo">Buscar</button></div>
-      </div>
-      <p class="hint">Los datos vienen de Open Food Facts, la misma base que usa Yuka.
-        Cada producto escaneado se guarda para siempre y a partir de la segunda vez
-        funciona sin internet.</p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2>Añadir o completar alimento</h2>
-      <div class="row c2">
-        <div><label>Nombre</label><input id="fdNombre"></div>
-        <div><label>Marca</label><input id="fdMarca"></div>
+    <details class="acc a-diet">
+      <summary><i class="lead"></i>Añadir o completar alimento</summary>
+      <div class="acc-body">
+        <div class="row c2">
+          <div><label>Nombre</label><input id="fdNombre"></div>
+          <div><label>Marca</label><input id="fdMarca"></div>
+        </div>
+        <div class="row"><div><label>Código de barras</label><input id="fdBarcode" inputmode="numeric"></div></div>
+        <p class="hint">Valores <strong>por 100 g</strong>. Carnes, pescados, arroz y pasta: en crudo.</p>
+        <div class="row c3">
+          <div><label>kcal</label><input id="fdKcal" class="key" type="number" inputmode="decimal"></div>
+          <div><label>Proteína</label><input id="fdP" class="key" type="number" inputmode="decimal"></div>
+          <div><label>Hidratos</label><input id="fdC" class="key" type="number" inputmode="decimal"></div>
+        </div>
+        <div class="row c2">
+          <div><label>Grasa</label><input id="fdG" class="key" type="number" inputmode="decimal"></div>
+          <div><label>Fibra</label><input id="fdFib" type="number" inputmode="decimal"></div>
+        </div>
+        <button class="primary" id="bSaveFood">Guardar alimento</button>
+        <p class="ok-msg" id="mFood"></p>
       </div>
-      <div class="row"><div><label>Código de barras</label><input id="fdBarcode" inputmode="numeric"></div></div>
-      <p class="hint">Valores <strong>por 100 g</strong>. Carnes, pescados, arroz y pasta: en crudo.</p>
-      <div class="row c3">
-        <div><label>kcal</label><input id="fdKcal" type="number" inputmode="decimal"></div>
-        <div><label>Proteína</label><input id="fdP" type="number" inputmode="decimal"></div>
-        <div><label>Hidratos</label><input id="fdC" type="number" inputmode="decimal"></div>
-      </div>
-      <div class="row c2">
-        <div><label>Grasa</label><input id="fdG" type="number" inputmode="decimal"></div>
-        <div><label>Fibra</label><input id="fdFib" type="number" inputmode="decimal"></div>
-      </div>
-      <button class="primary" id="bSaveFood">Guardar alimento</button>
-      <p class="ok-msg" id="mFood"></p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2>Base de alimentos</h2>
-      <input id="foodSearch" placeholder="Buscar…">
-      <div id="foodList" style="margin-top:10px"></div>
-    </div>
+    <details class="acc a-diet">
+      <summary><i class="lead"></i>Base de alimentos</summary>
+      <div class="acc-body">
+        <input id="foodSearch" placeholder="Buscar…">
+        <div id="foodList" style="margin-top:10px"></div>
+      </div>
+    </details>
   </div>
 </section>
 
 <!-- ══════════════════ PROGRESO ══════════════════ -->
 <section id="v-progreso">
 
-  <div class="card">
-    <h2>Revisión semanal</h2>
-    <p class="hint">Aplica las reglas del plan sobre tus datos y te dice el ajuste que
-      corresponde. Las decisiones salen de umbrales, no de intuición.</p>
-    <button class="primary" id="bCheckin">Ejecutar revisión</button>
-    <div id="checkinBody" style="margin-top:12px"></div>
-  </div>
+  <details class="acc a-gym" open>
+    <summary><i class="lead"></i>Revisión semanal</summary>
+    <div class="acc-body">
+      <p class="hint">Aplica las reglas del plan sobre tus datos y te dice el ajuste que
+        corresponde. Las decisiones salen de umbrales, no de intuición.</p>
+      <button class="primary" id="bCheckin">Ejecutar revisión</button>
+      <div id="checkinBody" style="margin-top:12px"></div>
+    </div>
+  </details>
 
-  <div class="card">
-    <h2>Medidas</h2>
-    <p class="hint">En frío, sin haber entrenado, misma hora. Dos tomas por punto;
-      si difieren más de 0,5 cm, una tercera y apunta la media.</p>
-    <div class="row c2">
-      <div><label>Fecha</label><input id="mFecha" type="date"></div>
-      <div><label>Cuello ⭐</label><input id="mCuello" type="number" step="0.1" inputmode="decimal"></div>
+  <details class="acc a-body">
+    <summary><i class="lead"></i>Tomar medidas<span class="sum" id="sumMeas"></span></summary>
+    <div class="acc-body">
+      <p class="hint">En frío, sin haber entrenado, misma hora. Dos tomas por punto;
+        si difieren más de 0,5 cm, una tercera y apunta la media.</p>
+      <div class="row c2">
+        <div><label>Fecha</label><input id="mFecha" type="date"></div>
+        <div><label>Cuello ⭐</label><input id="mCuello" class="key" type="number" step="0.1" inputmode="decimal"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Cintura ombligo ⭐</label><input id="mCintOmb" class="key" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label>Hombros ⭐</label><input id="mHombros" class="key" type="number" step="0.1" inputmode="decimal"></div>
+      </div>
+      <div id="measNavy" class="verdict"></div>
+      <div class="row c2">
+        <div><label>Pecho</label><input id="mPecho" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label>Cintura estrecha</label><input id="mCintEst" type="number" step="0.1" inputmode="decimal"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Cadera</label><input id="mCadera" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label>Brazo relajado</label><input id="mBrazoRel" type="number" step="0.1" inputmode="decimal"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Brazo contraído</label><input id="mBrazoCon" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label>Muslo</label><input id="mMuslo" type="number" step="0.1" inputmode="decimal"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Gemelo</label><input id="mGemelo" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label>Notas</label><input id="mNotas"></div>
+      </div>
+      <label class="chk" style="margin:10px 0">
+        <input type="checkbox" id="fotoChk"> He hecho las 5 fotos hoy</label>
+      <p class="hint">Las fotos las guardas tú en la galería del móvil. Aquí solo se
+        registra la fecha, para que el recordatorio de 28 días funcione.</p>
+      <button class="primary" id="bSaveMeas">Guardar medidas</button>
+      <p class="ok-msg" id="mMeas"></p>
     </div>
-    <div class="row c2">
-      <div><label>Cintura ombligo ⭐</label><input id="mCintOmb" type="number" step="0.1" inputmode="decimal"></div>
-      <div><label>Hombros ⭐</label><input id="mHombros" type="number" step="0.1" inputmode="decimal"></div>
-    </div>
-    <div id="measNavy" class="verdict"></div>
-    <div class="row c2">
-      <div><label>Pecho</label><input id="mPecho" type="number" step="0.1" inputmode="decimal"></div>
-      <div><label>Cintura estrecha</label><input id="mCintEst" type="number" step="0.1" inputmode="decimal"></div>
-    </div>
-    <div class="row c2">
-      <div><label>Cadera</label><input id="mCadera" type="number" step="0.1" inputmode="decimal"></div>
-      <div><label>Brazo relajado</label><input id="mBrazoRel" type="number" step="0.1" inputmode="decimal"></div>
-    </div>
-    <div class="row c2">
-      <div><label>Brazo contraído</label><input id="mBrazoCon" type="number" step="0.1" inputmode="decimal"></div>
-      <div><label>Muslo</label><input id="mMuslo" type="number" step="0.1" inputmode="decimal"></div>
-    </div>
-    <div class="row c2">
-      <div><label>Gemelo</label><input id="mGemelo" type="number" step="0.1" inputmode="decimal"></div>
-      <div><label>Notas</label><input id="mNotas"></div>
-    </div>
-    <label class="chk" style="margin:10px 0">
-      <input type="checkbox" id="fotoChk"> He hecho las 5 fotos hoy</label>
-    <p class="hint">Las fotos las guardas tú en la galería del móvil. Aquí solo se
-      registra la fecha, para que el recordatorio de 28 días funcione.</p>
-    <button class="primary" id="bSaveMeas">Guardar medidas</button>
-    <p class="ok-msg" id="mMeas"></p>
-    <div id="measHist" style="margin-top:14px"></div>
-  </div>
+  </details>
+
+  <details class="acc a-body">
+    <summary><i class="lead"></i>Resumen de medidas</summary>
+    <div class="acc-body" id="measHist"></div>
+  </details>
 
   <div class="subtabs" id="statTabs">
     <button class="on" data-st="gym">Gym</button>
@@ -435,46 +556,52 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   <div id="st-run" class="hide"></div>
   <div id="st-body" class="hide"></div>
 
-  <div class="card">
-    <h2>Modo de entrenamiento</h2>
-    <select id="minMode">
-      <option value="1">Nivel 1 · Completo</option>
-      <option value="2">Nivel 2 · Reducido (estrés alto)</option>
-      <option value="3">Nivel 3 · Mantenimiento (viaje)</option>
-      <option value="4">Nivel 4 · Suelo</option>
-    </select>
-    <p class="ok-msg" id="mMin"></p>
-    <p class="note">En una semana mala no se abandona, se degrada. Una semana en Nivel 3
-      cuesta prácticamente cero en un macrociclo de 52 semanas; dos semanas de abandono
-      total cuestan un mes.</p>
-  </div>
+  <details class="acc a-alert">
+    <summary><i class="lead"></i>Modo de entrenamiento<span class="sum" id="sumMin"></span></summary>
+    <div class="acc-body">
+      <select id="minMode">
+        <option value="1">Nivel 1 · Completo</option>
+        <option value="2">Nivel 2 · Reducido (estrés alto)</option>
+        <option value="3">Nivel 3 · Mantenimiento (viaje)</option>
+        <option value="4">Nivel 4 · Suelo</option>
+      </select>
+      <p class="ok-msg" id="mMin"></p>
+      <p class="note">En una semana mala no se abandona, se degrada. Una semana en Nivel 3
+        cuesta prácticamente cero en un macrociclo de 52 semanas; dos semanas de abandono
+        total cuestan un mes.</p>
+    </div>
+  </details>
 
-  <div class="card">
-    <h2>Exportar</h2>
-    <p class="hint">Comparte por correo. <strong>Hazlo cada domingo</strong>: es la
-      revisión semanal y también tu copia de seguridad — los datos viven solo en este móvil.</p>
-    <button class="primary" id="bExpAll">Exportar todo (5 CSV)</button>
-    <div class="row c2" style="margin-top:10px">
-      <button id="bCsvDia">diario.csv</button>
-      <button id="bCsvEnt">entrenamiento.csv</button>
+  <details class="acc a-info a-run">
+    <summary><i class="lead"></i>Exportar datos</summary>
+    <div class="acc-body">
+      <p class="hint">Comparte por correo. <strong>Hazlo cada domingo</strong>: es la
+        revisión semanal y también tu copia de seguridad — los datos viven solo en este móvil.</p>
+      <button class="primary" id="bExpAll">Exportar todo (5 CSV)</button>
+      <div class="row c2" style="margin-top:10px">
+        <button class="b-info" id="bCsvDia">diario.csv</button>
+        <button class="b-info" id="bCsvEnt">entrenamiento.csv</button>
+      </div>
+      <div class="row c2">
+        <button class="b-info" id="bCsvRun">running.csv</button>
+        <button class="b-info" id="bCsvMed">perimetros.csv</button>
+      </div>
+      <div class="row c2">
+        <button class="b-info" id="bCsvDieta">dieta.csv</button>
+        <button class="ghost" id="bBackup">Backup .json</button>
+      </div>
+      <p class="ok-msg" id="mExp"></p>
     </div>
-    <div class="row c2">
-      <button id="bCsvRun">running.csv</button>
-      <button id="bCsvMed">perimetros.csv</button>
-    </div>
-    <div class="row c2">
-      <button id="bCsvDieta">dieta.csv</button>
-      <button id="bBackup" class="ghost">Backup .json</button>
-    </div>
-    <p class="ok-msg" id="mExp"></p>
-  </div>
+  </details>
 
-  <div class="card">
-    <h2>Restaurar</h2>
-    <label>Cargar un backup .json · sobrescribe todo lo que haya</label>
-    <input type="file" id="fRestore" accept=".json,application/json">
-    <p class="ok-msg" id="mRest"></p>
-  </div>
+  <details class="acc a-alert">
+    <summary><i class="lead"></i>Restaurar backup</summary>
+    <div class="acc-body">
+      <label>Cargar un backup .json · <strong>sobrescribe todo lo que haya</strong></label>
+      <input type="file" id="fRestore" accept=".json,application/json">
+      <p class="ok-msg" id="mRest"></p>
+    </div>
+  </details>
 </section>
 
 </main>
@@ -489,6 +616,14 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   <button data-v="progreso">
     <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progreso</button>
 </nav>
+
+<div class="modal" id="pendModal">
+  <div class="modal-box">
+    <button class="modal-close" id="pendModalClose">Cerrar</button>
+    <h3>Pendiente</h3>
+    <div id="pendBody"></div>
+  </div>
+</div>
 
 <div class="modal" id="dayModal">
   <div class="modal-box">
