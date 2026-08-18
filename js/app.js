@@ -1,5 +1,5 @@
 'use strict';
-const APP_VER = '2026.08.18-3';
+const APP_VER = '2026.08.18-4';
 
 /* ═══════════════════ ARRANQUE Y NAVEGACIÓN ═══════════════════ */
 

@@ -1,4 +1,4 @@
-const CACHE = 'arnold-v3';
+const CACHE = 'arnold-v4';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './icons/icon.svg',
   './js/data.js', './js/menu.js', './js/db.js',

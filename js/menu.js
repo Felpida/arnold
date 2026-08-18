@@ -97,7 +97,12 @@ const FOODS = {
 
   gambas:        {n:'Gambas peladas congeladas',    m:'Hacendado', kcal:85, p:18,  c:0.5, g:1,   fib:0,
                   nota:'~5,50 €/100 g de proteína. Máximo 1-2 veces por semana, como el salmón.'},
-  guisantes:     {n:'Guisantes congelados',         m:'Hacendado', kcal:81, p:5.4, c:14,  g:0.4, fib:5}
+  guisantes:     {n:'Guisantes congelados',         m:'Hacendado', kcal:81, p:5.4, c:14,  g:0.4, fib:5},
+  verdura_fresca:{n:'Verdura fresca de salteado (calabacín, zanahoria, cebolla, pimiento)',
+                  m:'—', kcal:30, p:1.0, c:6.7, g:0.2, fib:1.8,
+                  nota:'Mezcla a partes iguales. Cortar en la sesión de batch cooking: aguanta 3-4 días.'},
+  brocoli:       {n:'Brócoli fresco', m:'—', kcal:34, p:2.8, c:7, g:0.4, fib:2.6,
+                  nota:'Peso ya limpio, sin tronco. Al comprar, cuenta ~25 % de merma.'}
 };
 
 /* Alimentos vetados. La app los bloquea al escanear o al añadir a una receta. */
@@ -439,7 +444,10 @@ const SHOP = {
   sesamo:          {sec:6, pack:150, un:'paquetes de 150 g'},
 
   gambas:          {sec:2, pack:400,  un:'bolsas de 400 g (peladas, congeladas)'},
-  guisantes:       {sec:2, pack:1000, un:'bolsas de 1 kg'}
+  guisantes:       {sec:2, pack:1000, un:'bolsas de 1 kg'},
+  verdura_fresca:  {sec:0, un:'g', granel:true,
+                    nota:'Reparte a partes iguales entre calabacín, zanahoria, cebolla y pimiento.'},
+  brocoli:         {sec:0, factor:1.33, un:'g con tronco', granel:true}
 };
 
 /* Extras que no salen del menú pero hay que comprar igual */

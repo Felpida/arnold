@@ -15,6 +15,7 @@ const Diet = {
   foods:{}, recipes:[], intake:[],
   scan:{stream:null, det:null, raf:null},
   recDraft:[],
+  prefVerdura:'verdura_cong',
 
   async init(){
     const t = D.today();
@@ -41,6 +42,14 @@ const Diet = {
     el('bGenShop').onclick = ()=>this.genShop();
     el('shDesde').onchange = ()=>this.renderShop();
     el('shDias').onchange  = ()=>this.renderShop();
+
+    this.prefVerdura = (await DB.setting('prefVerdura')) || 'verdura_cong';
+    el('prefVerdura').value = this.prefVerdura;
+    el('prefVerdura').onchange = async ev=>{
+      this.prefVerdura = ev.target.value;
+      await DB.setting('prefVerdura', this.prefVerdura);
+      await this.reload();
+    };
 
     await this.reload();
   },
@@ -75,7 +84,14 @@ const Diet = {
     return M.op.find(o=>o.base) || M.op[0];
   },
 
-  macrosOf(op){ return Calc.macros(op.it, this.foods); },
+    /* Sustituye la verdura de acompañamiento según la preferencia elegida.
+     Afecta a los macros, a la lista de ingredientes y a la compra. */
+  opItems(op){
+    if(this.prefVerdura==='verdura_cong') return op.it;
+    return op.it.map(([id,gr])=>id==='verdura_cong' ? [this.prefVerdura, gr] : [id,gr]);
+  },
+
+  macrosOf(op){ return Calc.macros(this.opItems(op), this.foods); },
 
   intakeOf(fecha, comida){
     return this.intake.find(i=>i.id === fecha+'|'+comida) || null;
@@ -200,8 +216,8 @@ const Diet = {
     const actual = rec ? (M.op.find(o=>o.id===rec.opReal) || plan) : plan;
     const baseMac = this.macrosOf(plan);
 
-    const lista = op=>op.it.map(([id,gr])=>{
-      const fd = this.foods[id];
+    const lista = op=>this.opItems(op).map(([id,gr])=>{      
+        const fd = this.foods[id];
       return `<tr><td>${fd?fd.n:id}</td><td class="n">${gr} g</td></tr>`;
     }).join('');
 
@@ -258,7 +274,7 @@ const Diet = {
   async confirmMeal(f, c, opReal, opPlan, estado){
     const op = MEALS[c].op.find(o=>o.id===opReal);
     await DB.put('intake',{id:f+'|'+c, fecha:f, comida:c, opPlan, opReal, estado,
-      items:op.it, tot:this.macrosOf(op), notas:null});
+      items:this.opItems(op), tot:this.macrosOf(op), notas:null});
     await this.reload();
     this.openDay(f);
   },
@@ -535,7 +551,7 @@ const Diet = {
     for(let f=desde; f<=hasta; f=D.add(f,1)){
       MEAL_ORDER.forEach(c=>{
         const rec = this.intakeOf(f,c);
-        const items = rec ? rec.items : this.plannedOp(f,c).it;
+        const items = rec ? rec.items : this.opItems(this.plannedOp(f,c));
         (items||[]).forEach(([id,gr])=>{ g[id] = (g[id]||0) + gr; });
       });
     }
