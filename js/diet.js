@@ -1,0 +1,508 @@
+'use strict';
+
+/* ═══════════════════ DIETA ═══════════════════
+   Calendario de menús · cambio de plato con equivalencias ·
+   recetas · base de alimentos · escáner de códigos de barras
+
+   MODELO B: el menú de cada día lo genera la app desde la plantilla
+   de la fase. Confirmas con un toque y solo detallas las desviaciones. */
+
+const OFF_API = 'https://world.openfoodfacts.org/api/v2/product/';
+const MEAL_ORDER = ['desayuno','almuerzo','comida','pre','cena'];
+
+const Diet = {
+  cal:{y:0, m:0},
+  foods:{}, recipes:[], intake:[],
+  scan:{stream:null, det:null, raf:null},
+  recDraft:[],
+
+  async init(){
+    const t = D.today();
+    this.cal.y = D.parse(t).getFullYear();
+    this.cal.m = D.parse(t).getMonth();
+
+    el('dietPrev').onclick = ()=>this.moveMonth(-1);
+    el('dietNext').onclick = ()=>this.moveMonth(1);
+    el('mealModalClose').onclick = ()=>el('mealModal').classList.remove('on');
+
+    document.querySelectorAll('#dietTabs button').forEach(b=>b.onclick = ()=>{
+      document.querySelectorAll('#dietTabs button').forEach(x=>x.classList.toggle('on',x===b));
+      ['cal','rec','food'].forEach(k=>el('dt-'+k).classList.toggle('hide', k!==b.dataset.dt));
+    });
+
+    el('bScan').onclick     = ()=>this.scanStart();
+    el('bScanStop').onclick = ()=>this.scanStop();
+    el('bBarcodeGo').onclick= ()=>this.lookup(el('barcodeManual').value.trim());
+    el('foodSearch').oninput= ()=>this.renderFoods();
+    el('bSaveFood').onclick = ()=>this.saveFood();
+    el('bAddRecItem').onclick = ()=>this.addRecItem();
+    el('bSaveRec').onclick  = ()=>this.saveRecipe();
+
+    await this.reload();
+  },
+
+  async reload(){
+    const fs = await DB.getAll('foods');
+    this.foods = {}; fs.forEach(f=>this.foods[f.id] = f);
+    this.recipes = await DB.getAll('recipes');
+    this.intake  = await DB.getAll('intake');
+    this.renderCalendar();
+    this.renderFoods();
+    this.renderRecipes();
+  },
+
+  moveMonth(n){
+    this.cal.m += n;
+    if(this.cal.m<0){this.cal.m=11;this.cal.y--;}
+    if(this.cal.m>11){this.cal.m=0;this.cal.y++;}
+    this.renderCalendar();
+  },
+
+  /* ═══ PLATO PLANIFICADO PARA UNA FECHA ═══
+     La cena sigue la rotación A/C/A/B/C/B/A; el resto usa la opción base. */
+  plannedOp(fecha, comida){
+    const M = MEALS[comida];
+    if(comida==='cena'){
+      const rot = CENA_ROT[D.dow(fecha)];
+      return M.op.find(o=>o.rot===rot) || M.op[0];
+    }
+    return M.op.find(o=>o.base) || M.op[0];
+  },
+
+  macrosOf(op){ return Calc.macros(op.it, this.foods); },
+
+  intakeOf(fecha, comida){
+    return this.intake.find(i=>i.id === fecha+'|'+comida) || null;
+  },
+
+  /* Macros efectivos del día: lo registrado, no lo planificado */
+  dayTotals(fecha){
+    const t = {kcal:0,p:0,c:0,g:0,fib:0};
+    MEAL_ORDER.forEach(c=>{
+      const r = this.intakeOf(fecha,c);
+      if(!r || !r.tot)return;
+      ['kcal','p','c','g','fib'].forEach(k=>t[k] += r.tot[k]||0);
+    });
+    Object.keys(t).forEach(k=>t[k] = Math.round(t[k]*10)/10);
+    return t;
+  },
+
+  /* Raciones de legumbre de la semana. Sin avena en la dieta, el mínimo es 2. */
+  legumeCount(fecha){
+    const ws = D.weekStart(fecha);
+    const LEG = ['CC','CC2','C5'];
+    let n = 0;
+    for(let i=0;i<7;i++){
+      const f = D.add(ws,i);
+      MEAL_ORDER.forEach(c=>{
+        const r = this.intakeOf(f,c);
+        if(r && LEG.includes(r.opReal)) n++;
+      });
+    }
+    return n;
+  },
+
+  /* ═══ CALENDARIO ═══ */
+  renderCalendar(){
+    const {y,m} = this.cal;
+    el('dietCalTitle').textContent = D.monthName(y,m);
+    const first = new Date(y,m,1);
+    const offset = (first.getDay()+6)%7;
+    const days = new Date(y,m+1,0).getDate();
+    const t = D.today();
+
+    let html = '<div class="cal-grid">' +
+      ['L','M','X','J','V','S','D'].map(d=>`<div class="cal-h">${d}</div>`).join('') +
+      '<div style="grid-column:span '+offset+'"></div>';
+
+    for(let d=1; d<=days; d++){
+      const f = D.iso(new Date(y,m,d));
+      const hechas = MEAL_ORDER.filter(c=>this.intakeOf(f,c)).length;
+      const cena = this.plannedOp(f,'cena');
+      const cls = ['cal-d'];
+      if(f===t) cls.push('is-today');
+      if(f>t)   cls.push('is-future');
+      const full = hechas===5;
+      html += `<button class="${cls.join(' ')}" data-f="${f}">
+        <span>${d}</span>
+        <div class="dots">${hechas?`<i class="dot ${full?'ok':'draft'}"></i>`:''}</div>
+        <em>${cena.rot||''}</em></button>`;
+    }
+    html += '</div>';
+    el('dietCal').innerHTML = html;
+    el('dietCal').querySelectorAll('.cal-d').forEach(b=>
+      b.onclick = ()=>this.openDay(b.dataset.f));
+
+    // Panel de hoy
+    const tot = this.dayTotals(t), ph = Calc.phaseFor(t);
+    const bar = (lab,v,obj,u)=>{
+      const pct = Math.min(100, obj? v/obj*100 : 0);
+      const cls = obj && v>=obj*0.9 ? 'ok' : v>=obj*0.6 ? 'warn' : 'bad';
+      return `<div class="bar"><span>${lab}</span>
+        <div class="track"><i class="${cls}" style="width:${pct}%"></i></div>
+        <em>${Math.round(v)}/${obj}${u}</em></div>`;
+    };
+    const leg = this.legumeCount(t);
+    el('dietToday').innerHTML = `
+      <h2>Hoy · ${ph.n}</h2>
+      ${bar('kcal',tot.kcal,ph.kcal,'')}
+      ${bar('Proteína',tot.p,ph.prot,' g')}
+      ${bar('Hidratos',tot.c,ph.hc,' g')}
+      ${bar('Grasa',tot.g,ph.grasa,' g')}
+      ${bar('Fibra',tot.fib,DAILY_EXTRAS.fibra.min,' g')}
+      ${leg<2 ? `<p class="note">Legumbre esta semana: <strong>${leg}/2</strong>.
+        ${DAILY_EXTRAS.legumbre.nota}</p>` : ''}`;
+  },
+
+  /* ═══ POPUP DEL DÍA ═══ */
+  openDay(f){
+    const ph = Calc.phaseFor(f), tot = this.dayTotals(f);
+    let h = `<h3>${D.labelLong(f)}</h3>
+      <p class="hint">${ph.n} · objetivo ${ph.kcal} kcal · ${ph.prot} g proteína<br>
+        Registrado: <strong>${Math.round(tot.kcal)} kcal · ${tot.p.toFixed(0)} g P ·
+        ${tot.c.toFixed(0)} g HC · ${tot.g.toFixed(0)} g G · ${tot.fib.toFixed(0)} g fibra</strong></p>`;
+
+    MEAL_ORDER.forEach(c=>{
+      const M = MEALS[c];
+      const plan = this.plannedOp(f,c);
+      const rec = this.intakeOf(f,c);
+      const op = rec ? (MEALS[c].op.find(o=>o.id===rec.opReal) || null) : plan;
+      const mac = rec?.tot || this.macrosOf(plan);
+      const est = !rec ? 'pendiente' : rec.estado;
+      h += `<button class="mealrow ${est}" data-c="${c}" data-f="${f}">
+        <div><strong>${M.hora} · ${M.n}</strong><br>
+          <span class="hint">${op ? op.n : (rec?.libre || 'Registro libre')}</span>
+          ${rec && rec.opReal!==rec.opPlan ? '<br><span class="tag warn">plato cambiado</span>':''}
+        </div>
+        <div class="mealmac">${Math.round(mac.kcal)} kcal<br>
+          <span class="hint">${mac.p.toFixed(0)} P</span></div>
+        <div class="state">${est==='pendiente'?'○':est==='plan'?'✓':'≈'}</div>
+      </button>`;
+    });
+
+    el('mealModalBody').innerHTML = h;
+    el('mealModalBody').querySelectorAll('.mealrow').forEach(b=>
+      b.onclick = ()=>this.openMeal(b.dataset.f, b.dataset.c));
+    el('mealModal').classList.add('on');
+  },
+
+  /* ═══ DETALLE DE COMIDA · CONFIRMAR O CAMBIAR PLATO ═══ */
+  openMeal(f, c){
+    const M = MEALS[c];
+    const plan = this.plannedOp(f,c);
+    const rec = this.intakeOf(f,c);
+    const actual = rec ? (M.op.find(o=>o.id===rec.opReal) || plan) : plan;
+    const baseMac = this.macrosOf(plan);
+
+    const lista = op=>op.it.map(([id,gr])=>{
+      const fd = this.foods[id];
+      return `<tr><td>${fd?fd.n:id}</td><td class="n">${gr} g</td></tr>`;
+    }).join('');
+
+    const alts = M.op.filter(o=>o.id!==actual.id);
+
+    el('mealModalBody').innerHTML = `
+      <button class="link" id="mBack">← ${D.label(f)}</button>
+      <h3>${M.hora} · ${M.n}</h3>
+      ${M.nota?`<p class="note">${M.nota}</p>`:''}
+
+      <div class="card2">
+        <h4>${actual.n} ${actual.id===plan.id?'<span class="tag">planificado</span>':'<span class="tag warn">cambiado</span>'}</h4>
+        ${actual.nota?`<p class="note">${actual.nota}</p>`:''}
+        <table>${lista(actual)}</table>
+        <p class="hint">${(()=>{const m=this.macrosOf(actual);
+          return `${Math.round(m.kcal)} kcal · ${m.p.toFixed(1)} g P · ${m.c.toFixed(1)} g HC · ${m.g.toFixed(1)} g G · ${m.fib.toFixed(1)} g fibra`;})()}</p>
+        <button class="primary" id="mConfirm">
+          ${rec?'Actualizar registro':'Cumplida'}</button>
+      </div>
+
+      <h4 class="sub">Cambiar de plato</h4>
+      <p class="hint">Cada alternativa muestra su desviación frente al plato planificado.
+        La proteína lleva la tolerancia más estricta porque es el macro que decide
+        cuánto músculo conservas.</p>
+      ${alts.map(o=>{
+        const m = this.macrosOf(o), ck = Calc.swapCheck(baseMac, m);
+        return `<button class="opt swap ${ck.lvl}" data-op="${o.id}">
+          <strong>${o.n}</strong>
+          <span class="tag ${ck.lvl}">${ck.lvl==='ok'?'equivalente':ck.lvl==='warn'?'desvía':'no recomendado'}</span>
+          <br><span class="hint">${Math.round(m.kcal)} kcal · ${m.p.toFixed(0)} g P
+            &nbsp;|&nbsp; Δ ${ck.dkcal>=0?'+':''}${ck.dkcal} kcal ·
+            ${ck.dp>=0?'+':''}${ck.dp} g P · ${ck.dc>=0?'+':''}${ck.dc} g HC ·
+            ${ck.dg>=0?'+':''}${ck.dg} g G</span>
+          <br><span class="hint">${ck.msg}</span>
+          ${o.nota?`<br><span class="hint">${o.nota}</span>`:''}</button>`;
+      }).join('')}
+
+      <h4 class="sub">Registro libre</h4>
+      <p class="hint">Para cuando comes fuera o algo que no está en el plan.
+        Puedes escanear el código de barras desde la pestaña Alimentos.</p>
+      <div id="freeBox"></div>
+      <button id="mFree">Registrar comida libre</button>
+      <p class="ok-msg" id="mMealMsg"></p>`;
+
+    el('mBack').onclick = ()=>this.openDay(f);
+    el('mConfirm').onclick = ()=>this.confirmMeal(f, c, actual.id, plan.id, 'plan');
+    el('mealModalBody').querySelectorAll('.swap').forEach(b=>b.onclick = ()=>{
+      const op = M.op.find(o=>o.id===b.dataset.op);
+      this.confirmMeal(f, c, op.id, plan.id, op.id===plan.id?'plan':'modificado');
+    });
+    el('mFree').onclick = ()=>this.freeMeal(f, c, plan.id);
+  },
+
+  async confirmMeal(f, c, opReal, opPlan, estado){
+    const op = MEALS[c].op.find(o=>o.id===opReal);
+    await DB.put('intake',{id:f+'|'+c, fecha:f, comida:c, opPlan, opReal, estado,
+      items:op.it, tot:this.macrosOf(op), notas:null});
+    await this.reload();
+    this.openDay(f);
+  },
+
+  /* Registro libre: alimentos de la base con gramaje */
+  freeMeal(f, c, opPlan){
+    const items = [];
+    const box = el('freeBox');
+    const render = ()=>{
+      const tot = Calc.macros(items.map(i=>[i.id,i.g]), this.foods);
+      box.innerHTML = `
+        ${items.map((i,ix)=>`<div class="set">
+          <i>${ix+1}</i>
+          <span style="grid-column:span 2">${this.foods[i.id]?.n||i.id}</span>
+          <input type="number" value="${i.g}" data-ix="${ix}">
+          <button class="mini" data-del="${ix}">✕</button></div>`).join('')}
+        <p class="hint">${Math.round(tot.kcal)} kcal · ${tot.p.toFixed(1)} g P ·
+          ${tot.c.toFixed(1)} g HC · ${tot.g.toFixed(1)} g G</p>
+        <div class="row c2">
+          <select id="freePick">${Object.values(this.foods)
+            .sort((a,b)=>a.n.localeCompare(b.n))
+            .map(fd=>`<option value="${fd.id}">${fd.n}</option>`).join('')}</select>
+          <button id="freeAdd">+ añadir</button>
+        </div>
+        <button class="primary" id="freeSave" ${items.length?'':'disabled'}>Guardar comida libre</button>`;
+
+      box.querySelectorAll('[data-ix]').forEach(inp=>inp.oninput = ()=>{
+        const v = parseFloat(inp.value); items[+inp.dataset.ix].g = isFinite(v)?v:0;
+      });
+      box.querySelectorAll('[data-del]').forEach(b=>b.onclick = ()=>{
+        items.splice(+b.dataset.del,1); render();
+      });
+      el('freeAdd').onclick = ()=>{ items.push({id:el('freePick').value, g:100}); render(); };
+      el('freeSave').onclick = async()=>{
+        const it = items.filter(i=>i.g>0).map(i=>[i.id,i.g]);
+        await DB.put('intake',{id:f+'|'+c, fecha:f, comida:c, opPlan, opReal:'LIBRE',
+          estado:'modificado', libre:'Comida libre', items:it,
+          tot:Calc.macros(it,this.foods), notas:null});
+        await this.reload();
+        this.openDay(f);
+      };
+    };
+    render();
+  },
+
+  /* ═══ ALIMENTOS ═══ */
+  renderFoods(){
+    const q = (el('foodSearch').value||'').toLowerCase().trim();
+    const fs = Object.values(this.foods)
+      .filter(f=>!q || f.n.toLowerCase().includes(q) || (f.marca||'').toLowerCase().includes(q))
+      .sort((a,b)=>(b.favorito?1:0)-(a.favorito?1:0) || a.n.localeCompare(b.n));
+
+    el('foodList').innerHTML = `<p class="hint">${fs.length} alimentos
+      ${q?'que coinciden':'en la base'}</p>
+      <table><tr><th>Alimento</th><th class="n">kcal</th><th class="n">P</th>
+        <th class="n">HC</th><th class="n">G</th></tr>
+      ${fs.slice(0,80).map(f=>`<tr><td>${f.n}
+        ${f.marca?`<br><span class="hint">${f.marca}${f.barcode?' · '+f.barcode:''}</span>`:''}
+        ${f.nota?`<br><span class="hint">${f.nota}</span>`:''}</td>
+        <td class="n">${f.por100.kcal}</td><td class="n">${f.por100.p}</td>
+        <td class="n">${f.por100.c}</td><td class="n">${f.por100.g}</td></tr>`).join('')}
+      </table>
+      <p class="hint">Valores por 100 g. Carnes, pescados, arroz y pasta: en crudo.</p>`;
+  },
+
+  /* ═══ ESCÁNER ═══ */
+  async scanStart(){
+    el('scanPanel').classList.remove('hide');
+    el('scanMsg').textContent = 'Iniciando cámara…';
+    try{
+      this.scan.stream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{ideal:'environment'}, width:{ideal:1280}}});
+      const v = el('scanVideo');
+      v.srcObject = this.scan.stream;
+      await v.play();
+    }catch(e){
+      el('scanMsg').innerHTML = 'No se pudo abrir la cámara. Recuerda que la cámara ' +
+        'solo funciona sobre HTTPS.<br>Usa el código a mano.';
+      return;
+    }
+
+    if(!('BarcodeDetector' in window)){
+      el('scanMsg').innerHTML = 'Este navegador no tiene detector de códigos nativo. ' +
+        '<strong>Abre la app en Chrome</strong>, o teclea el código a mano abajo.';
+      return;
+    }
+
+    this.scan.det = new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
+    el('scanMsg').textContent = 'Apunta al código de barras…';
+    const loop = async()=>{
+      if(!this.scan.stream)return;
+      try{
+        const codes = await this.scan.det.detect(el('scanVideo'));
+        if(codes.length){
+          const code = codes[0].rawValue;
+          if(navigator.vibrate) navigator.vibrate(120);
+          this.scanStop();
+          this.lookup(code);
+          return;
+        }
+      }catch(e){/* fotograma no válido, seguir */}
+      this.scan.raf = requestAnimationFrame(loop);
+    };
+    loop();
+  },
+
+  scanStop(){
+    if(this.scan.raf) cancelAnimationFrame(this.scan.raf);
+    if(this.scan.stream) this.scan.stream.getTracks().forEach(t=>t.stop());
+    this.scan = {stream:null, det:null, raf:null};
+    el('scanPanel').classList.add('hide');
+  },
+
+  /* Consulta a Open Food Facts y precarga el formulario */
+  async lookup(code){
+    if(!/^\d{8,14}$/.test(code)){ flash(el('mFood'),'Código no válido.',true); return; }
+
+    const known = Object.values(this.foods).find(f=>f.barcode===code);
+    if(known){
+      flash(el('mFood'),`Ya lo tienes guardado: ${known.n}`);
+      el('foodSearch').value = known.n; this.renderFoods();
+      return;
+    }
+
+    flash(el('mFood'),'Consultando…');
+    try{
+      const r = await fetch(OFF_API + code +
+        '.json?fields=product_name,product_name_es,brands,nutriments,quantity');
+      const j = await r.json();
+      if(j.offline){ flash(el('mFood'),'Sin conexión. Rellena los datos a mano.',true); return; }
+      if(j.status!==1){ flash(el('mFood'),'Producto no encontrado. Rellénalo a mano y quedará guardado.',true);
+        el('fdNombre').value=''; el('fdBarcode').value=code; return; }
+
+      const p = j.product, n = p.nutriments||{};
+      el('fdBarcode').value = code;
+      el('fdNombre').value  = p.product_name_es || p.product_name || '';
+      el('fdMarca').value   = p.brands || '';
+      el('fdKcal').value = Math.round(n['energy-kcal_100g'] ?? (n.energy_100g? n.energy_100g/4.184 : '')) || '';
+      el('fdP').value    = n.proteins_100g ?? '';
+      el('fdC').value    = n.carbohydrates_100g ?? '';
+      el('fdG').value    = n.fat_100g ?? '';
+      el('fdFib').value  = n.fiber_100g ?? '';
+
+      const faltan = ['fdKcal','fdP','fdC','fdG'].filter(i=>!el(i).value);
+      flash(el('mFood'), faltan.length
+        ? 'Encontrado, pero Open Food Facts no tiene todos los macros. Complétalos antes de guardar.'
+        : 'Encontrado. Revisa los valores y guarda.', faltan.length>0);
+    }catch(e){
+      flash(el('mFood'),'Error de consulta. Rellena los datos a mano.',true);
+    }
+  },
+
+  async saveFood(){
+    const gv = id=>{const n=parseFloat(String(el(id).value).replace(',','.'));return isFinite(n)?n:null;};
+    const n = el('fdNombre').value.trim();
+    if(!n){ flash(el('mFood'),'Falta el nombre.',true); return; }
+
+    const veto = FOOD_VETO.find(v=>n.toLowerCase().includes(v));
+    if(veto){ flash(el('mFood'),`"${veto}" está en tu lista de alimentos excluidos. No se guarda.`,true); return; }
+
+    if(gv('fdKcal')==null || gv('fdP')==null || gv('fdC')==null || gv('fdG')==null){
+      flash(el('mFood'),'Faltan macros: kcal, proteína, hidratos y grasa son obligatorios.',true); return;
+    }
+
+    const id = 'u_' + n.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,40);
+    await DB.put('foods',{id, n, marca:el('fdMarca').value.trim()||null,
+      barcode:el('fdBarcode').value.trim()||null, ud:null,
+      por100:{kcal:gv('fdKcal'), p:gv('fdP'), c:gv('fdC'), g:gv('fdG'), fib:gv('fdFib')||0},
+      nota:null, origen:'escaneado', favorito:false});
+    ['fdNombre','fdMarca','fdBarcode','fdKcal','fdP','fdC','fdG','fdFib'].forEach(i=>el(i).value='');
+    await this.reload();
+    flash(el('mFood'),`Guardado: ${n} ✓`);
+  },
+
+  /* ═══ RECETAS ═══ */
+  renderRecipes(){
+    el('recList').innerHTML = this.recipes.length
+      ? this.recipes.sort((a,b)=>a.n.localeCompare(b.n)).map(r=>{
+          const m = Calc.macros(r.it, this.foods);
+          const por = k=>(m[k]/(r.raciones||1));
+          return `<div class="card2">
+            <h4>${r.n}</h4>
+            <p class="hint">${r.raciones} ${r.raciones===1?'ración':'raciones'} ·
+              por ración: <strong>${Math.round(por('kcal'))} kcal · ${por('p').toFixed(1)} g P ·
+              ${por('c').toFixed(1)} g HC · ${por('g').toFixed(1)} g G</strong></p>
+            <table>${r.it.map(([id,gr])=>`<tr><td>${this.foods[id]?.n||id}</td>
+              <td class="n">${gr} g</td></tr>`).join('')}</table>
+            ${(r.pasos||[]).length?`<ol class="pasos">${r.pasos.map(p=>`<li>${p}</li>`).join('')}</ol>`:''}
+            ${r.origen==='propia'?`<button class="mini" data-delrec="${r.id}">Borrar</button>`:''}
+          </div>`;
+        }).join('')
+      : '<p class="hint">Sin recetas.</p>';
+
+    el('recList').querySelectorAll('[data-delrec]').forEach(b=>b.onclick = async()=>{
+      await DB.del('recipes', +b.dataset.delrec);
+      await this.reload();
+    });
+    this.renderRecDraft();
+  },
+
+  renderRecDraft(){
+    const tot = Calc.macros(this.recDraft.map(i=>[i.id,i.g]), this.foods);
+    const rac = parseFloat(el('recRaciones').value) || 1;
+    el('recItems').innerHTML = `
+      ${this.recDraft.map((i,ix)=>`<div class="set">
+        <i>${ix+1}</i>
+        <span style="grid-column:span 2">${this.foods[i.id]?.n||i.id}</span>
+        <input type="number" value="${i.g}" data-rix="${ix}">
+        <button class="mini" data-rdel="${ix}">✕</button></div>`).join('')}
+      ${this.recDraft.length?`<p class="hint">Total: ${Math.round(tot.kcal)} kcal ·
+        ${tot.p.toFixed(1)} g P · ${tot.c.toFixed(1)} g HC · ${tot.g.toFixed(1)} g G<br>
+        Por ración (${rac}): <strong>${Math.round(tot.kcal/rac)} kcal ·
+        ${(tot.p/rac).toFixed(1)} g P</strong></p>`:''}
+      <div class="row c2">
+        <select id="recPick">${Object.values(this.foods)
+          .sort((a,b)=>a.n.localeCompare(b.n))
+          .map(f=>`<option value="${f.id}">${f.n}</option>`).join('')}</select>
+        <input id="recGr" type="number" placeholder="gramos" value="100">
+      </div>`;
+
+    el('recItems').querySelectorAll('[data-rix]').forEach(inp=>inp.oninput = ()=>{
+      const v = parseFloat(inp.value);
+      this.recDraft[+inp.dataset.rix].g = isFinite(v)?v:0;
+      this.renderRecDraft();
+    });
+    el('recItems').querySelectorAll('[data-rdel]').forEach(b=>b.onclick = ()=>{
+      this.recDraft.splice(+b.dataset.rdel,1); this.renderRecDraft();
+    });
+  },
+
+  addRecItem(){
+    const id = el('recPick')?.value;
+    const g = parseFloat(el('recGr')?.value) || 100;
+    if(!id)return;
+    this.recDraft.push({id, g});
+    this.renderRecDraft();
+  },
+
+  async saveRecipe(){
+    const n = el('recNombre').value.trim();
+    if(!n || !this.recDraft.length){
+      flash(el('mRec'),'Falta el nombre o los ingredientes.',true); return;
+    }
+    await DB.put('recipes',{n, raciones:parseFloat(el('recRaciones').value)||1,
+      it:this.recDraft.filter(i=>i.g>0).map(i=>[i.id,i.g]),
+      pasos:el('recPasos').value.split('\n').map(s=>s.trim()).filter(Boolean),
+      origen:'propia'});
+    el('recNombre').value=''; el('recPasos').value=''; el('recRaciones').value='1';
+    this.recDraft = [];
+    await this.reload();
+    flash(el('mRec'),`Receta guardada: ${n} ✓`);
+  }
+};
