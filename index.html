@@ -632,6 +632,12 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
       <label>Cargar un backup .json · <strong>sobrescribe todo lo que haya</strong></label>
       <input type="file" id="fRestore" accept=".json,application/json">
       <p class="ok-msg" id="mRest"></p>
+      <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+      <label>La app no coge la última versión</label>
+      <button class="b-warn" id="bHardUpdate">Forzar actualización</button>
+      <p class="hint">Borra las cachés y el service worker para descargar todo de nuevo.
+        <strong>No toca tus datos</strong>: peso, entrenamientos, medidas y carreras
+        se conservan íntegros.</p>
     </div>
   </details>
     <p class="hint" style="text-align:center;opacity:.7" id="appVer"></p>

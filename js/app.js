@@ -20,6 +20,8 @@ const App = {
     el('bPend').onclick = ()=>el('pendModal').classList.add('on');
     el('pendModalClose').onclick = ()=>el('pendModal').classList.remove('on');
 
+    el('bHardUpdate').onclick = ()=>this.hardUpdate();
+
     await Train.init();
     await Progress.init();
     await Diet.init();
@@ -212,6 +214,24 @@ const App = {
     });
     flash(el('mDay'),'Guardado ✓');
     await this.reloadAll();
+  },
+
+    /* Purga service workers y cachés SIN tocar IndexedDB.
+     Es la vía segura para forzar una actualización cuando un service
+     worker antiguo se queda atascado. Los datos no se ven afectados. */
+  async hardUpdate(){
+    if(!confirm('Se borrarán las cachés y el service worker para forzar la versión más reciente.\n\nTus datos NO se tocan. ¿Continuar?')) return;
+    try{
+      if('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r=>r.unregister()));
+      }
+      if('caches' in window){
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k=>caches.delete(k)));
+      }
+    }catch(e){/* seguimos: la recarga es lo importante */}
+    location.reload();
   }
 };
 
