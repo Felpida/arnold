@@ -155,6 +155,26 @@ const Calc = {
     });
   },
 
+    /* Puntos de sueño (1-5) a partir de las horas dormidas */
+  sleepPts(h){
+    if(h==null) return null;
+    if(h<5) return 1;
+    if(h<6) return 2;
+    if(h<7) return 3;
+    if(h<8) return 4;
+    return 5;
+  },
+
+  /* Índice de disposición 0-100.
+     Requiere los cuatro valores. Si falta alguno devuelve null, porque
+     las escalas son opcionales y un índice a medias engañaría. */
+  readiness(b){
+    if(!b) return null;
+    const s = Calc.sleepPts(b.sueno);
+    if(s==null || b.cansancio==null || b.animo==null || b.estres==null) return null;
+    return Math.round((s + (6-b.cansancio) + b.animo + (6-b.estres)) / 20 * 100);
+  },
+
   /* % de grasa · método Navy (hombre). Medidas en cm. */
   navy(cintura,cuello,altura){
     if(!(cintura>0&&cuello>0&&altura>0)||cintura<=cuello)return null;
@@ -274,19 +294,30 @@ function toCsv(head,rows){
 
 const Export = {
 
-  async diario(){
+    async diario(){
     const rows = await DB.getAll('body');
     const ma = {}; Calc.movAvg(rows).forEach(r=>ma[r.fecha]=r.ma);
     const out = rows.sort((a,b)=>a.fecha<b.fecha?-1:1).map(r=>{
       const ph = Calc.phaseFor(r.fecha);
+      const tot = Diet.dayTotals(r.fecha);
+      const nConf = MEAL_ORDER.filter(c=>Diet.intakeOf(r.fecha,c)).length;
+      const manual = r.kcal!=null;
       return [r.fecha, ph.id, Calc.weekNum(r.fecha),
         csvNum(r.peso), csvNum(ma[r.fecha],2),
-        r.kcal, r.prot, r.hc, r.grasa, csvNum(r.fibra),
-        r.pasos, csvNum(r.sueno), r.dormir, r.adh, r.notas];
+        manual ? r.kcal : Math.round(tot.kcal),
+        manual ? r.prot : csvNum(tot.p),
+        manual ? '' : csvNum(tot.c),
+        manual ? '' : csvNum(tot.g),
+        manual ? '' : csvNum(tot.fib),
+        manual ? 'manual' : 'menu', nConf, Diet.adherenceOf(r.fecha),
+        r.pasos, csvNum(r.sueno), r.dormir, r.calSueno,
+        r.cansancio, r.animo, r.estres, Calc.readiness(r),
+        r.notas];
     });
     return toCsv(['fecha','fase','semana','peso_kg','media_movil_7d','kcal','proteina_g',
-      'hidratos_g','grasa_g','fibra_g','pasos','sueno_h','hora_dormir',
-      'adherencia_menu','notas'], out);
+      'hidratos_g','grasa_g','fibra_g','fuente_kcal','comidas_confirmadas','adherencia',
+      'pasos','sueno_h','hora_dormir','calidad_sueno','cansancio','animo','estres',
+      'disposicion','notas'], out);
   },
 
   async entrenamiento(){

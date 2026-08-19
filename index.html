@@ -273,7 +273,7 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
     <div><span>Peso hoy</span><b id="kPeso">—</b></div>
     <div><span>Media 7 días</span><b id="kMedia">—</b></div>
     <div><span>Tendencia semanal</span><b id="kTend">—</b></div>
-    <div><span>Días registrados</span><b id="kDias">0</b></div>
+    <div><span>Disposición (7 d)</span><b id="kDisp">—</b></div>
   </div>
   <div id="hoyObj"></div>
 
@@ -295,34 +295,80 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   <details class="acc a-body" id="accDay">
     <summary><i class="lead"></i>Registro del día<span class="sum" id="sumDay"></span></summary>
     <div class="acc-body">
-      <div class="row c2">
-        <div><label>Peso (kg) · en ayunas</label>
-          <input id="fPeso" class="key" type="number" step="0.1" inputmode="decimal" placeholder="80.0"></div>
-        <div><label>Pasos</label>
-          <input id="fPasos" type="number" inputmode="numeric" placeholder="5000"></div>
+
+      <div class="subtabs" id="dayTabs">
+        <button class="on" data-dp="am">Mañana</button>
+        <button data-dp="pm">Noche</button>
       </div>
-      <div class="row c2">
-        <div><label>Sueño (horas)</label>
-          <input id="fSueno" type="number" step="0.5" inputmode="decimal" placeholder="7"></div>
-        <div><label>Me acosté a las</label><input id="fDormir" type="time"></div>
+
+      <div id="day-am">
+        <p class="hint">Al levantarte, en ayunas y después del baño.</p>
+        <div class="row c2">
+          <div><label>Peso (kg)</label>
+            <input id="fPeso" class="key" type="number" step="0.1" inputmode="decimal" placeholder="80.0"></div>
+          <div><label>Horas de sueño</label>
+            <input id="fSueno" type="number" step="0.5" inputmode="decimal" placeholder="7"></div>
+        </div>
+        <div class="row c2">
+          <div><label>Me acosté a las</label><input id="fDormir" type="time"></div>
+          <div><label>Calidad del sueño · opcional</label>
+            <select id="fCalSueno">
+              <option value="">—</option>
+              <option value="1">1 · Muy mala</option>
+              <option value="2">2 · Mala</option>
+              <option value="3">3 · Normal</option>
+              <option value="4">4 · Buena</option>
+              <option value="5">5 · Muy buena</option>
+            </select></div>
+        </div>
+        <button class="primary" id="bSaveMorning">Guardar la mañana</button>
+        <p class="ok-msg" id="mDay"></p>
       </div>
-      <div class="row c3">
-        <div><label>kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
-        <div><label>Proteína g</label><input id="fProt" class="key" type="number" inputmode="numeric"></div>
-        <div><label>Hidratos g</label><input id="fHc" type="number" inputmode="numeric"></div>
+
+      <div id="day-pm" class="hide">
+        <p class="hint">Al final del día, después de entrenar y cenar.</p>
+        <div class="row"><div><label>Pasos</label>
+          <input id="fPasos" class="key" type="number" inputmode="numeric" placeholder="6500"></div></div>
+
+        <p class="hint" style="margin-top:14px"><strong>Estado del día · todo opcional.</strong>
+          Con estas tres escalas la app puede cruzar tu estado con el rendimiento y avisarte
+          antes de que una mala racha te saque del plan. Sin ellas, el resto funciona igual.</p>
+        <div class="row c3">
+          <div><label>Cansancio</label><select id="fCansancio">
+            <option value="">—</option>
+            <option value="1">1 · Fresco</option><option value="2">2 · Bien</option>
+            <option value="3">3 · Normal</option><option value="4">4 · Cansado</option>
+            <option value="5">5 · Agotado</option></select></div>
+          <div><label>Ánimo</label><select id="fAnimo">
+            <option value="">—</option>
+            <option value="1">1 · Muy bajo</option><option value="2">2 · Bajo</option>
+            <option value="3">3 · Normal</option><option value="4">4 · Bien</option>
+            <option value="5">5 · Muy bien</option></select></div>
+          <div><label>Estrés</label><select id="fEstres">
+            <option value="">—</option>
+            <option value="1">1 · Tranquilo</option><option value="2">2 · Bajo</option>
+            <option value="3">3 · Normal</option><option value="4">4 · Alto</option>
+            <option value="5">5 · Desbordado</option></select></div>
+        </div>
+
+        <div class="card2" id="dietAuto" style="margin-top:12px"></div>
+
+        <details style="margin-bottom:12px">
+          <summary class="hint" style="cursor:pointer">Anular las calorías a mano</summary>
+          <p class="hint">Solo para días que comes enteramente fuera del plan. Si lo rellenas,
+            estos valores sustituyen a los que calcula el menú.</p>
+          <div class="row c2">
+            <div><label>kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
+            <div><label>Proteína g</label><input id="fProt" type="number" inputmode="numeric"></div>
+          </div>
+        </details>
+
+        <div class="row"><div><label>Notas del día</label>
+          <textarea id="fNotas" placeholder="Ej: comí fuera, 2 cervezas. Hombro dcho bien."></textarea></div></div>
+        <button class="primary" id="bSaveNight">Guardar la noche</button>
+        <p class="ok-msg" id="mNight"></p>
       </div>
-      <div class="row c3">
-        <div><label>Grasa g</label><input id="fGrasa" type="number" inputmode="numeric"></div>
-        <div><label>Fibra g</label><input id="fFibra" type="number" inputmode="numeric"></div>
-        <div><label>Menú</label><select id="fAdh">
-          <option value="">—</option><option value="completo">Completo</option>
-          <option value="parcial">Parcial</option><option value="no">No cumplido</option>
-        </select></div>
-      </div>
-      <div class="row"><div><label>Notas · desviaciones, molestias, contexto</label>
-        <textarea id="fNotas" placeholder="Ej: comí fuera, 2 cervezas. Hombro dcho bien."></textarea></div></div>
-      <button class="primary" id="bSaveDay">Guardar el día</button>
-      <p class="ok-msg" id="mDay"></p>
+
     </div>
   </details>
 

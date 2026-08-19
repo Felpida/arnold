@@ -109,6 +109,24 @@ const Diet = {
     return t;
   },
 
+    /* Adherencia deducida del menú, sin campo manual.
+     completo   = 5 comidas confirmadas y todos los cambios de plato equivalentes
+     parcial    = 5 confirmadas pero con algún desvío o comida libre
+     incompleto = menos de 5 → el día NO es válido para calibrar el gasto */
+  adherenceOf(fecha){
+    const recs = MEAL_ORDER.map(c=>this.intakeOf(fecha,c));
+    if(recs.some(r=>!r)) return 'incompleto';
+    const desvio = recs.some(r=>{
+      if(r.opReal==='LIBRE') return true;
+      const M = MEALS[r.comida];
+      const plan = M.op.find(o=>o.id===r.opPlan) || M.op[0];
+      const alt  = M.op.find(o=>o.id===r.opReal);
+      if(!alt) return true;
+      return Calc.swapCheck(this.macrosOf(plan), this.macrosOf(alt)).lvl !== 'ok';
+    });
+    return desvio ? 'parcial' : 'completo';
+  },
+
   /* Raciones de legumbre de la semana. Sin avena en la dieta, el mínimo es 2. */
   legumeCount(fecha){
     const ws = D.weekStart(fecha);

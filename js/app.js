@@ -14,7 +14,14 @@ const App = {
     await seedFoods();
 
     document.querySelectorAll('nav button').forEach(b=>b.onclick = ()=>this.go(b.dataset.v));
-    el('bSaveDay').onclick = ()=>this.saveDay();
+        el('bSaveMorning').onclick = ()=>this.saveMorning();
+    el('bSaveNight').onclick   = ()=>this.saveNight();
+
+    // Sub-pestañas del registro diario: mañana / noche
+    document.querySelectorAll('#dayTabs button').forEach(b=>b.onclick = ()=>{
+      document.querySelectorAll('#dayTabs button').forEach(x=>x.classList.toggle('on', x===b));
+      ['am','pm'].forEach(k=>el('day-'+k).classList.toggle('hide', k!==b.dataset.dp));
+    });
 
     // Campana de avisos en la cabecera
     el('bPend').onclick = ()=>el('pendModal').classList.add('on');
@@ -88,13 +95,33 @@ const App = {
     el('hDate').textContent = D.labelLong(t);
     el('hPhase').textContent = ph.id==='S0' ? 'Semana 0' : `${ph.id} · S${wk<1?0:wk}`;
 
-    /* ── Formulario del día ── */
+    /* ── Registro del día: mañana y noche ── */
     const d = await DB.get('body', t) || {};
     const set = (id,v)=>{el(id).value = v ?? '';};
-    set('fPeso',d.peso); set('fPasos',d.pasos); set('fSueno',d.sueno); set('fDormir',d.dormir);
-    set('fKcal',d.kcal); set('fProt',d.prot); set('fHc',d.hc); set('fGrasa',d.grasa);
-    set('fFibra',d.fibra); set('fAdh',d.adh); set('fNotas',d.notas);
-    el('sumDay').textContent = d.peso!=null ? '✓ registrado' : 'sin peso';
+    set('fPeso',d.peso); set('fSueno',d.sueno); set('fDormir',d.dormir);
+    set('fCalSueno',d.calSueno);
+    set('fPasos',d.pasos); set('fCansancio',d.cansancio);
+    set('fAnimo',d.animo); set('fEstres',d.estres);
+    set('fNotas',d.notas); set('fKcal',d.kcal); set('fProt',d.prot);
+
+    const disp  = Calc.readiness(d);
+    const nConf = MEAL_ORDER.filter(c=>Diet.intakeOf(t,c)).length;
+    const totD  = Diet.dayTotals(t);
+    const adh   = Diet.adherenceOf(t);
+
+    el('sumDay').textContent = [
+      d.peso!=null ? 'peso ✓' : 'sin peso',
+      d.pasos!=null ? 'pasos ✓' : null,
+      disp!=null ? 'disp. '+disp : null
+    ].filter(Boolean).join(' · ');
+
+    el('dietAuto').innerHTML = `
+      <p class="hint"><strong>${nConf}/5 comidas confirmadas</strong> · adherencia
+        <span class="tag ${adh==='completo'?'ok':adh==='parcial'?'warn':'bad'}">${adh}</span></p>
+      <p class="hint">${Math.round(totD.kcal)} kcal · ${totD.p.toFixed(0)} g P ·
+        ${totD.c.toFixed(0)} g HC · ${totD.g.toFixed(0)} g G · ${totD.fib.toFixed(0)} g fibra</p>
+      ${nConf<5?`<p class="note">Con menos de 5 comidas confirmadas el día <strong>no cuenta
+        como válido para calibrar el gasto</strong>. Confírmalas en la pestaña Dieta.</p>`:''}`;
 
     /* ── KPI ── */
     const B = await DB.getAll('body');
@@ -105,7 +132,9 @@ const App = {
     el('kMedia').textContent = last && last.ma!=null ? last.ma.toFixed(1)+' kg' : '—';
     el('kTend').textContent  = trend==null ? '—' : (trend>0?'+':'')+trend.toFixed(2)+' %';
     el('kTend').className    = trend==null ? '' : (trend<0?'down':'up');
-    el('kDias').textContent  = B.length;
+    const disp7 = B.filter(b=>b.fecha>=D.add(t,-6)).map(b=>Calc.readiness(b)).filter(v=>v!=null);
+    el('kDisp').textContent = disp7.length
+      ? Math.round(disp7.reduce((a,b)=>a+b,0)/disp7.length) : '—';
 
     el('hoyObj').innerHTML = `<p class="hint">Objetivo de hoy: <strong>${ph.kcal} kcal ·
       ${ph.prot} g proteína · ${ph.pasos} pasos · acostarse a ${ph.dormir}</strong></p>`;
@@ -204,16 +233,28 @@ const App = {
   
   },
 
-  async saveDay(){
+    /* Mañana y noche se guardan por separado y sin pisarse: cada una
+     escribe solo sus campos sobre el registro existente del día.
+     Las escalas de 1-5 son opcionales; vacías se guardan como null. */
+  async saveMorning(){
     const gv = id=>{const n=parseFloat(String(el(id).value).replace(',','.'));return isFinite(n)?n:null;};
-    await DB.put('body',{
-      fecha:D.today(), peso:gv('fPeso'), pasos:gv('fPasos'), sueno:gv('fSueno'),
-      dormir:el('fDormir').value||null, kcal:gv('fKcal'), prot:gv('fProt'),
-      hc:gv('fHc'), grasa:gv('fGrasa'), fibra:gv('fFibra'),
-      adh:el('fAdh').value||null, notas:el('fNotas').value.trim()||null,
-      foto:(await DB.get('body',D.today()))?.foto || false
-    });
-    flash(el('mDay'),'Guardado ✓');
+    const prev = await DB.get('body', D.today()) || {};
+    await DB.put('body', {...prev, fecha:D.today(),
+      peso:gv('fPeso'), sueno:gv('fSueno'),
+      dormir:el('fDormir').value||null, calSueno:gv('fCalSueno')});
+    flash(el('mDay'),'Mañana guardada ✓');
+    await this.reloadAll();
+  },
+
+  async saveNight(){
+    const gv = id=>{const n=parseFloat(String(el(id).value).replace(',','.'));return isFinite(n)?n:null;};
+    const prev = await DB.get('body', D.today()) || {};
+    await DB.put('body', {...prev, fecha:D.today(),
+      pasos:gv('fPasos'), cansancio:gv('fCansancio'),
+      animo:gv('fAnimo'), estres:gv('fEstres'),
+      notas:el('fNotas').value.trim()||null,
+      kcal:gv('fKcal'), prot:gv('fProt')});
+    flash(el('mNight'),'Noche guardada ✓');
     await this.reloadAll();
   },
 
