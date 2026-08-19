@@ -593,6 +593,10 @@ const Train = {
     const malas = week.filter(b=>b.sueno!=null && b.sueno<6).length;
     if(malas>=4) out.push(`Sueño por debajo de 6 h en ${malas} noches de la última semana.`);
 
+    const disp = week.map(b=>Calc.readiness(b)).filter(v=>v!=null);
+    const bajas = disp.filter(v=>v<50).length;
+    if(bajas>=4) out.push(`Disposición por debajo de 50 en ${bajas} días de la última semana.`);
+
     const mol = (W.molestias||[]).filter(m=>m.nivel>=2);
     if(mol.length) out.push(`Molestia de nivel ${Math.max(...mol.map(m=>m.nivel))} en ${mol.map(m=>m.zona).join(', ')}.`);
 
