@@ -316,8 +316,10 @@ const Progress = {
 
     const pasos = this.B.filter(b=>b.pasos!=null).slice(-14);
     const sueno = this.B.filter(b=>b.sueno!=null).slice(-14);
+    const dispS = this.B.filter(b=>Calc.readiness(b)!=null).sort((a,b)=>a.fecha<b.fecha?-1:1).map(b=>({x:b.fecha, y:Calc.readiness(b)}));
+    const esc = k=>this.B.filter(b=>b[k]!=null).sort((a,b)=>a.fecha<b.fecha?-1:1).map(b=>({x:b.fecha, y:b[k]}));
 
-        el('st-body').innerHTML = `
+    el('st-body').innerHTML = `
       <div class="kpi">
         <div><span>Media móvil 7d</span><b>${ma.length&&ma[ma.length-1].ma?ma[ma.length-1].ma.toFixed(1)+' kg':'—'}</b></div>
         <div><span>Tendencia semanal</span><b class="${trend==null?'':trend<0?'down':'up'}">${trend==null?'—':(trend>0?'+':'')+trend.toFixed(2)+' %'}</b></div>
@@ -334,6 +336,19 @@ const Progress = {
         <p class="hint">Línea gruesa = media móvil. <strong>Solo esa cuenta.</strong>
           Un déficit de 0,35 kg/semana es invisible dentro de la fluctuación diaria de 1-2 kg.</p>`,
         'a-body', true)}
+      
+      ${acc('Disposición · sueño, cansancio, ánimo y estrés', `
+        ${dispS.length>1 ? lineChart([{pts:dispS.slice(-30), col:'var(--ac2)', w:2.5}],160)
+          : '<p class="hint">Necesitas al menos 2 días con las cuatro escalas rellenas.</p>'}
+        <p class="hint">Índice de 0 a 100 que combina horas de sueño, cansancio, ánimo y estrés.
+          Por debajo de <strong>50 durante 4 días de una semana</strong> es criterio de descarga.</p>
+        ${esc('cansancio').length>1 ? `<h4 class="sub">Cansancio<em>1 fresco → 5 agotado</em></h4>
+          ${lineChart([{pts:esc('cansancio').slice(-30), col:'var(--bad)', w:2}],90)}`:''}
+        ${esc('animo').length>1 ? `<h4 class="sub">Ánimo<em>1 muy bajo → 5 muy bien</em></h4>
+          ${lineChart([{pts:esc('animo').slice(-30), col:'var(--ac)', w:2}],90)}`:''}
+        ${esc('estres').length>1 ? `<h4 class="sub">Estrés<em>1 tranquilo → 5 desbordado</em></h4>
+          ${lineChart([{pts:esc('estres').slice(-30), col:'var(--warn)', w:2}],90)}`:''}`,
+        'a-body', false, dispS.length ? dispS[dispS.length-1].y : '—')}
 
       ${acc('Ratio hombro / cintura', `
         ${ratio.length>1?lineChart([{pts:ratio, col:'var(--ac)', w:2.5}],140)
@@ -367,12 +382,32 @@ const Progress = {
     return ((last.ma - ref.ma)/ref.ma*100)/(dd/7);
   },
 
-  /* Adherencia de dieta: completo = 1, parcial = 0,5 */
+    /* Calorías efectivas del día: la anulación manual si existe, si no las del menú.
+     Un día con menos de 5 comidas confirmadas NO es válido para calibrar:
+     no es un día de pocas calorías, es un día sin dato. */
+  kcalOf(b){
+    if(b.kcal!=null) return {kcal:b.kcal, valido:true, fuente:'manual'};
+    const n = MEAL_ORDER.filter(c=>Diet.intakeOf(b.fecha,c)).length;
+    if(n<5) return {kcal:null, valido:false, fuente:'incompleto'};
+    return {kcal:Diet.dayTotals(b.fecha).kcal, valido:true, fuente:'menu'};
+  },
+
+  validDays(desde){
+    return this.B.filter(b=>(!desde || b.fecha>=desde) && this.kcalOf(b).valido).length;
+  },
+
+  /* Adherencia deducida del menú. Solo cuenta los días en los que hay
+     algún registro de comida: un día sin ningún dato no es un
+     incumplimiento, es ausencia de dato, y hundiría la media sin motivo. */
   adherence(desde){
-    const rows = this.B.filter(b=>b.fecha>=desde && b.adh);
-    if(!rows.length) return null;
-    const v = rows.reduce((s,b)=>s + (b.adh==='completo'?1:b.adh==='parcial'?0.5:0), 0);
-    return v/rows.length*100;
+    const dias = this.B.filter(b=>b.fecha>=desde).map(b=>b.fecha)
+      .filter(f=>MEAL_ORDER.some(c=>Diet.intakeOf(f,c)));
+    if(!dias.length) return null;
+    const v = dias.reduce((s,f)=>{
+      const a = Diet.adherenceOf(f);
+      return s + (a==='completo' ? 1 : a==='parcial' ? 0.6 : 0.3);
+    }, 0);
+    return v/dias.length*100;
   },
 
   /* ═══ MOTOR DE DECISIONES SEMANAL ═══
@@ -402,20 +437,27 @@ const Progress = {
 
     // ── Fase A: el entregable es el TDEE real, no el ajuste ──
     if(ph.id==='A' || ph.id==='S0'){
-      const k = this.B.filter(b=>b.kcal!=null);
+      const k = this.B.map(b=>this.kcalOf(b)).filter(x=>x.valido);
       const pesos = ma.filter(r=>r.ma!=null);
       if(k.length>=14 && pesos.length>=2){
-        const kmed = k.reduce((s,b)=>s+b.kcal,0)/k.length;
+        const kmed = k.reduce((s,x)=>s+x.kcal,0)/k.length;
         const dias = D.diffDays(pesos[0].fecha, pesos[pesos.length-1].fecha);
         const dPeso = pesos[pesos.length-1].ma - pesos[0].ma;
         const tdee = kmed + (dPeso*7700/dias);
         push('ok',`<strong>TDEE real estimado: ${Math.round(tdee)} kcal/día</strong><br>
-          Media de ingesta ${Math.round(kmed)} kcal · variación de peso ${dPeso>=0?'+':''}${dPeso.toFixed(2)} kg en ${dias} días.<br>
-          Estimación previa por fórmula: 2.750 kcal. Desviación: ${Math.round(tdee-2750)} kcal.`);
-        acc.push(`Recalcular los macros de la Fase B sobre ${Math.round(tdee)} kcal en lugar de 2.750.`);
+          Media de ingesta ${Math.round(kmed)} kcal sobre <strong>${k.length} días válidos</strong> ·
+          variación de peso ${dPeso>=0?'+':''}${dPeso.toFixed(2)} kg en ${dias} días.<br>
+          Rango por fórmula: 2.610-2.760 kcal. Desviación: ${Math.round(tdee-2685)} kcal.`);
+        acc.push(`Recalcular los macros de la Fase B sobre ${Math.round(tdee)} kcal.`);
       } else {
-        push('info',`Calibración en curso: ${k.length}/21 días de ingesta registrados.
-          Con menos de 14 días el cálculo del TDEE no es fiable.`);
+        const total = this.B.length;
+        push('info',`Calibración en curso: <strong>${k.length} días válidos</strong> de ${total}
+          registrados. Hacen falta 14 como mínimo.<br>
+          Un día es válido si tiene las 5 comidas confirmadas, o si has anulado las
+          calorías a mano en la pestaña Noche.`);
+        if(total > k.length + 2)
+          acc.push(`Tienes ${total-k.length} días con el menú a medias. Confirma las comidas
+            que falten o anota las calorías a mano: si no, esos días no cuentan.`);
       }
     }
 
@@ -460,6 +502,76 @@ const Progress = {
     if(semana===3) acc.push('Semana 3: registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
     if(semana>0 && semana%2===0) acc.push('Semana par: toca toma de perímetros.');
 
+        /* ── Disposición ↔ rendimiento, agrupado por semanas ── */
+    const sem = {};
+    this.B.forEach(b=>{
+      const r = Calc.readiness(b); if(r==null) return;
+      const k = D.weekStart(b.fecha);
+      (sem[k] = sem[k] || {disp:[], ton:0, rpe:[]}).disp.push(r);
+    });
+    this.W.filter(w=>w.estado==='done').forEach(w=>{
+      const k = D.weekStart(w.fecha);
+      if(!sem[k]) return;
+      sem[k].ton += (w.ex||[]).reduce((s,e)=>s+Calc.tonnage(e.sets), 0);
+      if(w.rpe!=null) sem[k].rpe.push(w.rpe);
+    });
+    const wks = Object.values(sem)
+      .map(v=>({disp:v.disp.reduce((a,b)=>a+b,0)/v.disp.length, ton:v.ton,
+        rpe:v.rpe.length ? v.rpe.reduce((a,b)=>a+b,0)/v.rpe.length : null}))
+      .filter(x=>x.ton>0);
+
+    if(wks.length>=4){
+      const alto = wks.filter(x=>x.disp>=70), bajo = wks.filter(x=>x.disp<70);
+      if(alto.length && bajo.length){
+        const tA = alto.reduce((s,x)=>s+x.ton,0)/alto.length;
+        const tB = bajo.reduce((s,x)=>s+x.ton,0)/bajo.length;
+        const dt = (tA-tB)/tB*100;
+        const rA = alto.filter(x=>x.rpe!=null), rB = bajo.filter(x=>x.rpe!=null);
+        const rpeTxt = (rA.length && rB.length)
+          ? ` y el RPE medio ${(rA.reduce((s,x)=>s+x.rpe,0)/rA.length -
+              rB.reduce((s,x)=>s+x.rpe,0)/rB.length).toFixed(1)} puntos` : '';
+        push('info',`<strong>Disposición y rendimiento:</strong> en las semanas con
+          disposición media ≥ 70, tu tonelaje fue un
+          <strong>${dt>=0?'+':''}${dt.toFixed(0)} %</strong>${rpeTxt} respecto a las semanas
+          por debajo de 70. (${alto.length} semanas altas, ${bajo.length} bajas.)`);
+      }
+    }
+
+    /* ── Estrés ↔ adherencia: tu umbral personal ── */
+    const conE = this.B.filter(b=>b.estres!=null);
+    if(conE.length>=10){
+      const media = filtro=>{
+        const arr = conE.filter(filtro).map(b=>{
+          const a = Diet.adherenceOf(b.fecha);
+          return a==='completo' ? 100 : a==='parcial' ? 60 : 30;
+        });
+        return arr.length>=3 ? arr.reduce((x,y)=>x+y,0)/arr.length : null;
+      };
+      const aAlto = media(b=>b.estres>=4), aBajo = media(b=>b.estres<=2);
+      if(aAlto!=null && aBajo!=null)
+        push(aAlto < aBajo-10 ? 'warn' : 'info',
+          `<strong>Estrés y adherencia:</strong> con estrés alto (4-5) tu adherencia media es
+           del <strong>${aAlto.toFixed(0)} %</strong>, frente al ${aBajo.toFixed(0)} % con
+           estrés bajo (1-2).` +
+          (aAlto < aBajo-10 ? ' Ese es tu umbral: a partir de estrés 4 no hay que apretar, hay que degradar a Nivel 2.' : ''));
+    }
+
+    /* ── Disposición baja sostenida: criterio de descarga ── */
+    const d7 = this.B.filter(b=>b.fecha>=D.add(hoy,-6))
+      .map(b=>Calc.readiness(b)).filter(v=>v!=null);
+    const bajas = d7.filter(v=>v<50).length;
+    if(bajas>=4){
+      push('bad',`Disposición por debajo de 50 en ${bajas} de los últimos 7 días.`);
+      acc.push('Semana de descarga: mismo peso, 50 % de las series, RIR 4.');
+    }
+
+    /* ── Estrés sostenido: activar el protocolo de mínimos ── */
+    const e3 = conE.sort((a,b)=>a.fecha<b.fecha?1:-1).slice(0,3);
+    if(e3.length===3 && e3.every(b=>b.estres>=4) && this.nivel===1){
+      push('bad','<strong>Estrés alto tres días seguidos.</strong>');
+      acc.push('Pasar a Nivel 2 esta semana: 3 sesiones full-body, cargas al 90 %, dieta a mantenimiento. En una semana mala no se abandona, se degrada.');
+    }
+
     el('checkinBody').innerHTML = `
       <p class="hint">${ph.n} · Semana ${semana<1?0:semana} · ${D.labelLong(hoy)}</p>
       ${out.map(o=>`<p class="verdict ${o.t==='ok'?'ok':o.t==='bad'?'bad':o.t==='warn'?'warn':''}">${o.txt}</p>`).join('')}
@@ -495,6 +607,17 @@ const Progress = {
 
     if(D.dow(hoy)===0)
       av.push('<strong>Es domingo</strong> — revisión semanal, exportar backup y batch cooking de lunes a miércoles.');
+
+    if(!hoyB || hoyB.pasos==null)
+      av.push('<strong>Registrar pasos y estado</strong> — pestaña Noche del registro del día.');
+
+    const inval = this.B.length - this.validDays();
+    if(inval>=3)
+      av.push(`<strong>${inval} días sin menú completo</strong> — no cuentan para calibrar el gasto. Confirma las comidas o anota las kcal a mano.`);
+
+    const eu = this.B.filter(b=>b.estres!=null).sort((a,b)=>a.fecha<b.fecha?1:-1).slice(0,3);
+    if(eu.length===3 && eu.every(b=>b.estres>=4) && this.nivel===1)
+      av.push('<strong>Estrés alto sostenido</strong> — el plan indica pasar a Nivel 2 esta semana.');
 
     App.setPending(av);
     el('sumMeas').textContent = lastM ? `hace ${D.diffDays(lastM,hoy)} d` : 'sin datos';
