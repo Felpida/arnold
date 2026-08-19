@@ -25,6 +25,7 @@ const Diet = {
     el('dietPrev').onclick = ()=>this.moveMonth(-1);
     el('dietNext').onclick = ()=>this.moveMonth(1);
     el('mealModalClose').onclick = ()=>el('mealModal').classList.remove('on');
+    el('prepModalClose').onclick = ()=>el('prepModal').classList.remove('on');    
 
     document.querySelectorAll('#dietTabs button').forEach(b=>b.onclick = ()=>{
       document.querySelectorAll('#dietTabs button').forEach(x=>x.classList.toggle('on',x===b));
@@ -62,6 +63,7 @@ const Diet = {
     this.renderCalendar();
     this.renderFoods();
     this.renderRecipes();
+    this.renderDishes();
 
     await this.renderShop();
   },
@@ -253,7 +255,9 @@ const Diet = {
         <p class="hint">${(()=>{const m=this.macrosOf(actual);
           return `${Math.round(m.kcal)} kcal · ${m.p.toFixed(1)} g P · ${m.c.toFixed(1)} g HC · ${m.g.toFixed(1)} g G · ${m.fib.toFixed(1)} g fibra`;})()}</p>
         <button class="primary" id="mConfirm">
-          ${rec?'Actualizar registro':'Cumplida'}</button>
+          ${rec?'Actualizar registro':'Cumplida'}
+        </button>
+        ${actual.prep?`<button class="b-info" id="mPrep" style="margin-top:8px">Ver preparación paso a paso</button>`:''}
       </div>
 
       <h4 class="sub">Cambiar de plato</h4>
@@ -270,7 +274,9 @@ const Diet = {
             ${ck.dp>=0?'+':''}${ck.dp} g P · ${ck.dc>=0?'+':''}${ck.dc} g HC ·
             ${ck.dg>=0?'+':''}${ck.dg} g G</span>
           <br><span class="hint">${ck.msg}</span>
-          ${o.nota?`<br><span class="hint">${o.nota}</span>`:''}</button>`;
+          ${o.nota?`<br><span class="hint">${o.nota}</span>`:''}</button>
+        ${o.prep?`<button class="mini b-info" data-prep="${o.id}"
+          style="margin:-4px 0 12px">Ver receta paso a paso</button>`:''}`;
       }).join('')}
 
       <h4 class="sub">Registro libre</h4>
@@ -281,12 +287,15 @@ const Diet = {
       <p class="ok-msg" id="mMealMsg"></p>`;
 
     el('mBack').onclick = ()=>this.openDay(f);
-    el('mConfirm').onclick = ()=>this.confirmMeal(f, c, actual.id, plan.id, 'plan');
+    el('mConfirm').onclick = ()=>this.confirmMeal(f, c, actual.id, plan.id, actual.id===plan.id ? 'plan' : 'modificado');
     el('mealModalBody').querySelectorAll('.swap').forEach(b=>b.onclick = ()=>{
       const op = M.op.find(o=>o.id===b.dataset.op);
       this.confirmMeal(f, c, op.id, plan.id, op.id===plan.id?'plan':'modificado');
     });
     el('mFree').onclick = ()=>this.freeMeal(f, c, plan.id);
+    if(actual.prep) el('mPrep').onclick = ()=>this.showPrep(c, actual.id);
+    el('mealModalBody').querySelectorAll('[data-prep]').forEach(b=>b.onclick = ()=>
+      this.showPrep(c, b.dataset.prep));
   },
 
   async confirmMeal(f, c, opReal, opPlan, estado){
@@ -693,5 +702,62 @@ const Diet = {
     Object.values(MEALS).forEach(M=>M.op.forEach(o=>
       o.it.forEach(([id])=>{ if(!this.foods[id]) falta.add(id); })));
     return [...falta];
+  },
+
+    /* ═══ FICHA DE PREPARACIÓN ═══
+     Los gramajes salen de opItems(), así que respetan la preferencia
+     de verdura fresca o congelada sin duplicar datos. */
+  showPrep(comida, opId){
+    const M = MEALS[comida];
+    const op = (M.op||[]).find(o=>o.id===opId);
+    if(!op || !op.prep) return;
+    const p = op.prep, m = this.macrosOf(op);
+
+    el('prepModalBody').innerHTML = `
+      <h3>${op.n}</h3>
+      <p class="hint">${M.hora} · ${M.n} · <strong>${p.t}</strong> · ${p.dif}</p>
+      <div class="verdict">${Math.round(m.kcal)} kcal · ${m.p.toFixed(0)} g P ·
+        ${m.c.toFixed(0)} g HC · ${m.g.toFixed(0)} g G · ${m.fib.toFixed(0)} g fibra</div>
+
+      <h4 class="sub">Ingredientes</h4>
+      <table>${this.opItems(op).map(([id,gr])=>{
+        const f = this.foods[id];
+        const ud = (f && f.ud) ? ` <span class="hint">≈ ${(gr/f.ud).toFixed(1).replace('.0','')} ud</span>` : '';
+        return `<tr><td>${f?f.n:id}</td><td class="n"><strong>${gr} g</strong>${ud}</td></tr>`;
+      }).join('')}</table>
+      <p class="hint">Carnes, pescados, arroz y pasta: <strong>gramaje en crudo</strong>.</p>
+
+      <h4 class="sub">Utensilios</h4>
+      <p class="hint">${p.ut.join(' · ')}</p>
+
+      <h4 class="sub">Preparación</h4>
+      <ol class="pasos">${p.pasos.map(s=>`<li>${s}</li>`).join('')}</ol>
+      ${p.tip?`<p class="note"><strong>Clave:</strong> ${p.tip}</p>`:''}`;
+
+    el('prepModal').classList.add('on');
+  },
+
+  /* Catálogo de platos con ficha, para la pestaña Recetas */
+  renderDishes(){
+    const html = MEAL_ORDER.map(c=>{
+      const M = MEALS[c];
+      const con = (M.op||[]).filter(o=>o.prep);
+      if(!con.length) return '';
+      return `<h4 class="sub">${M.hora} · ${M.n}</h4>
+        ${con.map(o=>{
+          const m = this.macrosOf(o);
+          return `<button class="opt" data-dish="${c}|${o.id}">
+            <strong>${o.n}</strong> <span class="tag">${o.prep.t}</span>
+            <br><span class="hint">${Math.round(m.kcal)} kcal · ${m.p.toFixed(0)} g P ·
+            ${o.prep.pasos.length} pasos · ${o.prep.ut.length} utensilios</span></button>`;
+        }).join('')}`;
+    }).join('');
+
+    el('dishList').innerHTML = html ||
+      '<p class="hint">Sin fichas de preparación cargadas.</p>';
+    el('dishList').querySelectorAll('[data-dish]').forEach(b=>b.onclick = ()=>{
+      const [c,id] = b.dataset.dish.split('|');
+      this.showPrep(c, id);
+    });
   }
 };

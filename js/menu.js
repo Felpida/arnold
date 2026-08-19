@@ -41,7 +41,6 @@ const FOODS = {
   pasta:         {n:'Pasta',                       m:'Hacendado', kcal:355, p:12,  c:71, g:1.5, fib:3},
   patata:        {n:'Patata',                      m:'—',         kcal:77,  p:2,   c:17, g:0.1, fib:2.2},
   boniato:       {n:'Boniato',                     m:'—',         kcal:86,  p:1.6, c:20, g:0.1, fib:3},
-  tortitas_arroz:{n:'Tortitas de arroz',           m:'Hacendado', kcal:380, p:8,   c:81, g:2.8, fib:2, ud:6},
   garbanzos_bote:{n:'Garbanzos cocidos, escurridos', m:'Hacendado', kcal:140, p:7.5, c:17, g:2.8, fib:7},
   alubias_bote:  {n:'Alubias blancas cocidas, escurridas', m:'Hacendado', kcal:110, p:7, c:15, g:0.6, fib:6},
 
@@ -107,7 +106,7 @@ const FOODS = {
 
 /* Alimentos vetados. La app los bloquea al escanear o al añadir a una receta. */
 const FOOD_VETO = ['chocolate','alcachofa','bollería','dulces','quinoa','chía','coliflor',
-  'avena','muesli','cereales de desayuno','aguacate','cuscús','sémola','mermelada'];
+  'avena','muesli','cereales de desayuno','aguacate','cuscús','sémola','mermelada', 'tortitas de arroz'];
 
 /* Tomate natural: permitido pero desaconsejado por preferencia. Aviso, no bloqueo. */
 const FOOD_WARN = {tomate_natural:'Preferencia: tomate natural muy poco o nada.'};
@@ -131,8 +130,8 @@ const MEALS = {
       {id:'D3', n:'Tortilla de huevo y claras con pan',
        it:[['huevo',110],['claras',100],['pan_integral',70],['naranja',200]],
        nota:'Requiere 4 min de sartén. Única opción del desayuno que se cocina.'},
-      {id:'D4', n:'Yogur griego con tortitas y miel',
-       it:[['yogur_griego0',300],['tortitas_arroz',25],['miel',12],['platano',120],['nueces',10]]}
+      {id:'D4', n:'Yogur griego con pan, miel y plátano',
+       it:[['yogur_griego0',300],['pan_integral',40],['miel',12],['platano',120],['nueces',10]]}
     ]},
 
   /* ─────── ALMUERZO · 10:45 · TUPPER ─────── */
@@ -219,15 +218,15 @@ const MEALS = {
   pre:{hora:'17:00', n:'Pre-entreno', obj:{kcal:302,p:20,c:59,g:2},
     nota:'30-45 min antes de entrenar. Grasa casi nula A PROPÓSITO: retrasaría la digestión. Estos hidratos son los que alimentan una sesión de 95 min — no se recortan nunca.',
     op:[
-      {id:'P1', n:'Plátano, tortitas y queso batido', base:true,
-       it:[['platano',120],['tortitas_arroz',20],['queso_batido',150],['pan_integral',20]]},
+      {id:'P1', n:'Plátano, pan con miel y queso batido', base:true,
+       it:[['platano',120],['pan_integral',45],['queso_batido',150],['miel',8]]},
       {id:'P2', n:'Pan con miel y skyr',
        it:[['platano',120],['pan_integral',35],['miel',12],['skyr',150]]},
       {id:'P3', n:'Dos plátanos y queso batido',
        it:[['platano',240],['queso_batido',200]],
        nota:'La más rápida: cero preparación.'},
-      {id:'P4', n:'Manzana, tortitas y queso batido',
-       it:[['manzana',180],['tortitas_arroz',28],['queso_batido',180],['miel',10]]}
+      {id:'P4', n:'Manzana, pan con miel y queso batido',
+       it:[['manzana',180],['pan_integral',50],['queso_batido',180],['miel',10]]}
     ]},
 
   /* ─────── CENA · 20:45 · POST-ENTRENO ─────── */
@@ -401,7 +400,6 @@ const SHOP = {
   garbanzos_bote:{sec:5, ud:250, un:'botes',
                   nota:'250 g escurridos por bote de 400 g.'},
   alubias_bote:  {sec:5, ud:250, un:'botes'},
-  tortitas_arroz:{sec:5, pack:130, un:'paquetes de 130 g'},
   tomate_frito:  {sec:5, pack:400, un:'briks de 400 g'},
   miel:          {sec:5, pack:500, un:'tarros de 500 g'},
 
