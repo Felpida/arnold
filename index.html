@@ -475,11 +475,22 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
     <div class="card">
       <h2>Lista de la compra</h2>
       <div class="row c2">
-        <div><label>Desde (lunes)</label><input id="shDesde" type="date" class="key"></div>
+        <div><label>Desde</label><input id="shDesde" type="date" class="key"></div>
         <div><label>Periodo</label><select id="shDias">
-          <option value="7">1 semana</option>
+          <option value="1">1 día</option>
+          <option value="2">2 días</option>
+          <option value="3">3 días</option>
+          <option value="4">4 días</option>
+          <option value="5">5 días</option>
+          <option value="6">6 días</option>
+          <option value="7" selected>1 semana</option>
           <option value="14">2 semanas</option>
         </select></div>
+      </div>
+      <div class="row c3">
+        <button class="b-info" id="shHoy">Hoy</button>
+        <button class="b-info" id="shManana">Mañana</button>
+        <button class="b-info" id="shLunes">Próx. lunes</button>
       </div>
       <div class="row"><div><label>Verdura de acompañamiento</label>
         <select id="prefVerdura">
@@ -488,9 +499,9 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
         </select></div>
       </div>
       <button class="primary" id="bGenShop">Generar lista</button>
-      <p class="note">Suma todos los ingredientes del menú del periodo y los convierte a
-        unidades de compra. Si en algún día ya has cambiado de plato, la lista compra
-        lo que registraste, no lo planificado.</p>
+      <p class="note">Suma los ingredientes del menú del periodo y los convierte a unidades
+        de compra. Si en algún día ya has cambiado de plato, compra lo que registraste.
+        <strong>Con 3 días o menos te da gramos exactos</strong> en lugar de envases enteros.</p>
     </div>
     <div class="card">
       <h2 id="shTitle"></h2>

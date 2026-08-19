@@ -44,6 +44,9 @@ const Diet = {
     el('bGenShop').onclick = ()=>this.genShop();
     el('shDesde').onchange = ()=>this.renderShop();
     el('shDias').onchange  = ()=>this.renderShop();
+    el('shHoy').onclick    = ()=>{ el('shDesde').value = D.today();          this.renderShop(); };
+    el('shManana').onclick = ()=>{ el('shDesde').value = D.add(D.today(),1);  this.renderShop(); };
+    el('shLunes').onclick  = ()=>{ el('shDesde').value = this.nextMonday();   this.renderShop(); };
 
     this.prefVerdura = (await DB.setting('prefVerdura')) || 'verdura_cong';
     el('prefVerdura').value = this.prefVerdura;
@@ -716,25 +719,40 @@ const Diet = {
     return g;
   },
 
-  /* Convierte gramos del plan en unidades de compra */
-  toPurchase(id, gr){
+  /* Convierte gramos del plan en unidades de compra.
+     Con rangos de 3 días o menos devuelve gramos exactos, porque
+     redondear a envases enteros en una compra de un día no sirve. */
+  toPurchase(id, gr, dias){
     const s = SHOP[id] || {sec:5, un:'g', granel:true};
     const bruto = gr * (s.factor || 1);
+    const corto = (dias || 7) <= 3;
 
     if(s.ud){
       const n = Math.ceil(bruto / s.ud);
-      const extra = s.pack_ud ? ` (${Math.ceil(n/s.pack_ud)} ${s.pack_ud===12?'docena(s)':'pack(s)'})` : '';
+      const extra = s.pack_ud
+        ? ` (${Math.ceil(n/s.pack_ud)} ${s.pack_ud===12?'docena(s)':'pack(s)'})` : '';
       return {sec:s.sec, txt:`${n} ${s.un}${extra}`, nota:s.nota, raw:bruto};
     }
+
     if(s.pack){
+      if(corto){
+        const r = Math.ceil(bruto/10)*10;
+        return {sec:s.sec,
+          txt:`${r>=1000 ? (r/1000).toFixed(2)+' kg' : r+' g'} · ${s.un}`,
+          nota:s.nota, raw:bruto};
+      }
       const n = Math.ceil(bruto / s.pack);
-      const kg = s.pack>=1000;
-      return {sec:s.sec, txt:`${n} ${s.un}` + (n>1?` · ${kg?(n*s.pack/1000).toFixed(1)+' kg':(n*s.pack)+' g'}`:''),
+      const kg = s.pack >= 1000;
+      return {sec:s.sec,
+        txt:`${n} ${s.un}` + (n>1 ? ` · ${kg?(n*s.pack/1000).toFixed(1)+' kg':(n*s.pack)+' g'}` : ''),
         nota:s.nota, raw:bruto};
     }
-    // A granel: se redondea a los 50 g siguientes
-    const r = Math.ceil(bruto/50)*50;
-    return {sec:s.sec, txt: r>=1000 ? (r/1000).toFixed(2)+' kg' : r+' g', nota:s.nota, raw:bruto};
+
+    // A granel: 10 g de precisión en rangos cortos, 50 g en semanales
+    const paso = corto ? 10 : 50;
+    const r = Math.ceil(bruto/paso)*paso;
+    return {sec:s.sec, txt: r>=1000 ? (r/1000).toFixed(2)+' kg' : r+' g',
+      nota:s.nota, raw:bruto};
   },
 
   async genShop(){
@@ -743,7 +761,7 @@ const Diet = {
     const items = Object.entries(g)
       .filter(([,gr])=>gr>0)
       .map(([id,gr])=>{
-        const p = this.toPurchase(id, gr);
+        const p = this.toPurchase(id, gr, dias);
         return {id, n:this.foods[id]?.n || id, gr:Math.round(gr),
           sec:p.sec, txt:p.txt, nota:p.nota, ok:false};
       });
@@ -758,15 +776,17 @@ const Diet = {
     const L = await DB.get('shopping', desde+'|'+hasta);
 
     if(!L){
+      const d = this.shopRange().dias;
       el('shList').innerHTML = `<p class="hint">Sin lista generada para este rango.
         Pulsa <strong>Generar lista</strong> y la app sumará todos los ingredientes
-        de los ${this.shopRange().dias} días.</p>`;
+        ${d===1 ? 'del día' : `de los ${d} días`}.</p>`;
       return;
     }
 
     const porSec = {};
     L.items.forEach(it=>{ (porSec[it.sec] = porSec[it.sec] || []).push(it); });
-    SHOP_FIJOS.forEach(f=>{
+    // Los fijos solo en compras de 4 días o más: en una de un día son ruido
+    if((L.dias||7) >= 4) SHOP_FIJOS.forEach(f=>{
       (porSec[f.sec] = porSec[f.sec] || []).push({fijo:true, n:f.n, txt:f.cant, ok:false});
     });
 
@@ -774,6 +794,7 @@ const Diet = {
 
     el('shList').innerHTML = `
       <p class="hint">Generada el ${D.label(L.creado.slice(0,10))} ·
+        ${L.dias===1 ? '1 día' : L.dias+' días'} ·
         <strong>${hechos}/${total}</strong> productos marcados</p>
       ${SEC.map((sn,si)=>{
         const its = porSec[si]; if(!its || !its.length) return '';
