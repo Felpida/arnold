@@ -14,7 +14,7 @@ const G = {
 const VOL_TARGET = {
   A: {[G.DOR]:[9,11],[G.EM]:[8,10],[G.DL]:[10,12],[G.DP]:[8,8],[G.PEC]:[8,9],
       [G.CUA]:[7,8],[G.ISQ]:[6,7],[G.BI]:[6,7],[G.TRI]:[6,6],[G.GEM]:[6,6],
-      [G.TRA]:[5,6],[G.COR]:[6,8]},
+      [G.TRA]:[5,6],[G.COR]:[9,11]},
   B: {[G.DOR]:[10,14],[G.EM]:[8,12],[G.DL]:[12,16],[G.DP]:[8,12],[G.PEC]:[8,12],
       [G.CUA]:[8,10],[G.ISQ]:[8,12],[G.BI]:[6,8],[G.TRI]:[6,9],[G.GEM]:[6,9],
       [G.TRA]:[6,8],[G.COR]:[6,9]}
@@ -210,13 +210,26 @@ const EX = {
   plancha_lastre:{n:'Plancha con lastre', g:G.COR, p:'antiextensión', r:60, unidad:'seg',
                   sub:['plancha','rueda_abs']},
   rueda_abs:     {n:'Rueda abdominal', g:G.COR, p:'antiextensión', r:60,
-                  sub:['crunch_polea','plancha']},
+                  sub:[], veto:true,
+                  tip:'VETADO por preferencia.'},
   crunch_polea:  {n:'Crunch en polea', g:G.COR, p:'flexión de tronco', r:60,
                   sub:['rueda_abs','elevacion_piernas']},
-  elevacion_piernas:{n:'Elevación de piernas colgado', g:G.COR, p:'flexión de tronco', r:60,
-                  sub:['crunch_polea','rueda_abs']},
+  elevacion_piernas:{n:'Elevación de piernas colgado de barra', g:G.COR, p:'flexión de tronco', r:60,
+                  sub:[], veto:true,
+                  tip:'VETADO. Con tu fuerza de tracción actual el agarre y la estabilidad escapular fallan antes que el abdomen: no estimula el core y suma fatiga al hombro.'},
   pallof:        {n:'Pallof press (por lado)', g:G.COR, p:'antirrotación', r:60,
                   sub:['plancha_lateral'],
+  elev_piernas_silla:{n:'Elevación de piernas en silla romana', g:G.COR, p:'flexión de tronco', r:60,
+                  sub:['elev_rodillas_paralelas','crunch_polea','hollow_hold'],
+                  tip:'Espalda apoyada, sin balancear. Sube por contracción abdominal, no por impulso de cadera. Baja controlado 2 s.'},
+  elev_rodillas_paralelas:{n:'Elevación de rodillas en paralelas', g:G.COR, p:'flexión de tronco', r:60,
+                  sub:['elev_piernas_silla','crunch_polea'],
+                  tip:'Versión más fácil: rodillas flexionadas en lugar de piernas extendidas.'},
+  dead_bug:      {n:'Dead bug', g:G.COR, p:'control lumbopélvico', r:60,
+                  sub:['plancha','hollow_hold'],
+                  tip:'Lumbar pegada al suelo todo el rato. Si se despega, has ido demasiado lejos.'},
+  hollow_hold:   {n:'Hollow hold', g:G.COR, p:'antiextensión', r:60, unidad:'seg',
+                  sub:['plancha','dead_bug']},
                   tip:'Antirrotación. Sin girar el tronco.'},
   plancha_lateral:{n:'Plancha lateral', g:G.COR, p:'antirrotación', r:60, unidad:'seg',
                   sub:['pallof','plancha']}
@@ -246,9 +259,9 @@ const SESSIONS = {
   /* ── FASE A · Semanas 1-3 (24 ago - 13 sep) ── */
   D1:{n:'D1 Lunes · Tirón A — Anchura', fase:'A', dia:1, dur:75,
     nota:'Prioridad nº1 del año: tracción vertical.',
-    ex:[['jalon_ancho',3,10,50],['dominada_asist',3,8,40],['remo_maquina',3,12,0],
+        ex:[['jalon_ancho',3,10,50],['dominada_asist',3,8,40],['remo_maquina',3,12,0],
         ['pullover_polea',2,15,0],['pajaros_maq',3,15,0],
-        ['face_pull',2,20,0],['rot_externa',2,15,0]]},
+        ['face_pull',2,20,0],['rot_externa',2,15,0],['elev_piernas_silla',3,12,0]]},
 
   D2:{n:'D2 Martes · Empuje', fase:'A', dia:2, dur:70,
     nota:'Recordatorio: el press militar con barra libre no vuelve al programa.',
@@ -257,8 +270,8 @@ const SESSIONS = {
 
   D3:{n:'D3 Miércoles · Pierna y core', fase:'A', dia:3, dur:80,
     nota:'Mantenimiento estricto. Sin cinturón en toda la Fase A. La recuperación que ahorras aquí se invierte en espalda y hombro.',
-    ex:[['sentadilla',4,6,100],['rdl',3,10,45],['prensa',3,12,0],
-        ['curl_femoral',3,12,0],['gemelo_pie',3,15,0],['plancha',3,40,0],['pallof',2,12,0]]},
+        ex:[['sentadilla',4,6,100],['rdl',3,10,45],['prensa',3,12,0],
+        ['curl_femoral',3,12,0],['gemelo_pie',3,15,0],['plancha',2,40,0],['pallof',2,12,0]]},
 
   D4:{n:'D4 Jueves · Tirón B — Densidad', fase:'A', dia:4, dur:80,
     nota:'El remo en barra es el ejercicio más importante del año: de 40×8 a 80×8 en 15 semanas.',
@@ -268,9 +281,9 @@ const SESSIONS = {
 
   D5:{n:'D5 Viernes · Hombro y brazo', fase:'A', dia:5, dur:70,
     nota:'Sesión de "cocos". Última serie de laterales a RIR 1: aquí el fallo es seguro.',
-    ex:[['elev_lat_maq',4,15,0],['press_arnold',3,10,0],['aperturas_maq',3,15,0],
+        ex:[['elev_lat_maq',4,15,0],['press_arnold',3,10,0],['aperturas_maq',3,15,0],
         ['remo_cuello',3,15,0],['curl_polea',3,12,0],['ext_tri_polea',3,12,0],
-        ['gemelo_sent',3,20,0],['rueda_abs',3,12,0]]},
+        ['gemelo_sent',3,20,0],['crunch_polea',3,12,0]]},
 
   /* ── PROTOCOLO DE MÍNIMOS ── */
   N2A:{n:'N2-A · Full body reducido', fase:'N2', dur:50,
