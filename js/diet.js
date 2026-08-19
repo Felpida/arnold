@@ -16,6 +16,7 @@ const Diet = {
   scan:{stream:null, det:null, raf:null},
   recDraft:[],
   prefVerdura:'verdura_cong',
+  selSauce:null,
 
   async init(){
     const t = D.today();
@@ -64,6 +65,7 @@ const Diet = {
     this.renderFoods();
     this.renderRecipes();
     this.renderDishes();
+    this.renderSauces();
 
     await this.renderShop();
   },
@@ -144,6 +146,111 @@ const Diet = {
     return n;
   },
 
+    /* ═══════════════════ SALSAS ═══════════════════ */
+
+  saucesFor(opId){
+    return Object.entries(SAUCES).filter(([,s])=>(s.para||[]).includes(opId));
+  },
+
+  /* Ingredientes de la salsa escalados a las raciones que se sirven */
+  sauceItems(sid, rac){
+    const s = SAUCES[sid]; if(!s) return [];
+    const k = (rac||1)/s.raciones;
+    return s.it.map(([id,gr])=>[id, Math.round(gr*k*10)/10]);
+  },
+
+  sauceMacros(sid, rac){
+    return Calc.macros(this.sauceItems(sid, rac), this.foods);
+  },
+
+  /* Bloque de selección de salsa dentro del detalle de la comida */
+  sauceBlock(op){
+    const ss = this.saucesFor(op.id);
+    if(!ss.length) return '';
+    const base = this.macrosOf(op);
+
+    return `<h4 class="sub">Salsa · opcional</h4>
+      <p class="hint">Se suma al plato, no lo modifica. Pulsa para poner o quitar.
+        El porcentaje es lo que añade sobre las calorías del plato.</p>
+      ${ss.map(([sid,s])=>{
+        const m = this.sauceMacros(sid,1);
+        const sel = this.selSauce===sid;
+        const pct = m.kcal/base.kcal*100;
+        const lvl = pct<=10 ? 'ok' : pct<=20 ? 'warn' : 'bad';
+        return `<button class="opt ${sel?'sel':''}" data-sauce="${sid}">
+          <strong>${sel?'✓ ':''}${s.n}</strong>
+          <span class="tag">${s.cocina}</span>
+          <span class="tag ${lvl}">+${pct.toFixed(0)} %</span>
+          <br><span class="hint">+${Math.round(m.kcal)} kcal · +${m.p.toFixed(1)} g P ·
+            +${m.c.toFixed(1)} g HC · +${m.g.toFixed(1)} g G · rinde ${s.raciones} usos</span></button>
+        <button class="mini b-info" data-sprep="${sid}" style="margin:-4px 0 12px">Ver receta</button>`;
+      }).join('')}
+      ${this.selSauce ? `<div class="verdict ok">Plato con salsa: <strong>${(()=>{
+        const t = Calc.macros(
+          this.opItems(op).concat(this.sauceItems(this.selSauce,1)), this.foods);
+        return `${Math.round(t.kcal)} kcal · ${t.p.toFixed(0)} g P · ` +
+               `${t.c.toFixed(0)} g HC · ${t.g.toFixed(0)} g G`;
+      })()}</strong></div>` : ''}`;
+  },
+
+  /* Ficha de preparación de una salsa */
+  showSaucePrep(sid){
+    const s = SAUCES[sid]; if(!s || !s.prep) return;
+    const p = s.prep;
+    const tanda = Calc.macros(s.it, this.foods);
+    const rac = this.sauceMacros(sid,1);
+
+    el('prepModalBody').innerHTML = `
+      <h3>${s.n}</h3>
+      <p class="hint">${s.cocina} · <strong>${p.t}</strong> · ${p.dif} ·
+        rinde <strong>${s.raciones} raciones</strong></p>
+      <div class="verdict">Por ración: <strong>${Math.round(rac.kcal)} kcal ·
+        ${rac.p.toFixed(1)} g P · ${rac.c.toFixed(1)} g HC · ${rac.g.toFixed(1)} g G</strong></div>
+
+      <h4 class="sub">Ingredientes<em>tanda de ${s.raciones}</em></h4>
+      <table>${s.it.map(([id,gr])=>{
+        const f = this.foods[id];
+        return `<tr><td>${f?f.n:id}</td><td class="n"><strong>${gr} g</strong></td></tr>`;
+      }).join('')}</table>
+      <p class="hint">Tanda completa: ${Math.round(tanda.kcal)} kcal ·
+        ${tanda.p.toFixed(1)} g P · ${tanda.c.toFixed(1)} g HC · ${tanda.g.toFixed(1)} g G</p>
+
+      <h4 class="sub">Utensilios</h4>
+      <p class="hint">${p.ut.join(' · ')}</p>
+
+      <h4 class="sub">Preparación</h4>
+      <ol class="pasos">${p.pasos.map(x=>`<li>${x}</li>`).join('')}</ol>
+      ${p.tip?`<p class="note"><strong>Clave:</strong> ${p.tip}</p>`:''}
+      <p class="note"><strong>Conservación:</strong> ${s.conserva}</p>
+      <h4 class="sub">Pega con</h4>
+      <p class="hint">${(s.para||[]).map(id=>{
+        for(const c of MEAL_ORDER){
+          const o = MEALS[c].op.find(x=>x.id===id);
+          if(o) return o.n;
+        }
+        return id;
+      }).join(' · ')}</p>`;
+
+    el('prepModal').classList.add('on');
+  },
+
+  /* Catálogo de salsas para la pestaña Recetas */
+  renderSauces(){
+    const box = el('sauceList');
+    if(!box) return;
+    box.innerHTML = Object.entries(SAUCES).map(([sid,s])=>{
+      const m = this.sauceMacros(sid,1);
+      return `<button class="opt" data-sprep="${sid}">
+        <strong>${s.n}</strong> <span class="tag">${s.cocina}</span>
+        <span class="tag">${s.prep.t}</span>
+        <br><span class="hint">+${Math.round(m.kcal)} kcal · +${m.p.toFixed(1)} g P ·
+          +${m.c.toFixed(1)} g HC · +${m.g.toFixed(1)} g G por ración ·
+          rinde ${s.raciones} · pega con ${(s.para||[]).length} platos</span></button>`;
+    }).join('');
+    box.querySelectorAll('[data-sprep]').forEach(b=>b.onclick = ()=>
+      this.showSaucePrep(b.dataset.sprep));
+  },
+
   /* ═══ CALENDARIO ═══ */
   renderCalendar(){
     const {y,m} = this.cal;
@@ -215,6 +322,7 @@ const Diet = {
         <div><strong>${M.hora} · ${M.n}</strong><br>
           <span class="hint">${op ? op.n : (rec?.libre || 'Registro libre')}</span>
           ${rec && rec.opReal!==rec.opPlan ? '<br><span class="tag warn">plato cambiado</span>':''}
+          ${rec && rec.salsa ? `<br><span class="tag ok">+ ${SAUCES[rec.salsa]?.n || rec.salsa}</span>`:''}
         </div>
         <div class="mealmac">${Math.round(mac.kcal)} kcal<br>
           <span class="hint">${mac.p.toFixed(0)} P</span></div>
@@ -229,12 +337,13 @@ const Diet = {
   },
 
   /* ═══ DETALLE DE COMIDA · CONFIRMAR O CAMBIAR PLATO ═══ */
-  openMeal(f, c){
+  openMeal(f, c, keepSauce){
     const M = MEALS[c];
     const plan = this.plannedOp(f,c);
     const rec = this.intakeOf(f,c);
     const actual = rec ? (M.op.find(o=>o.id===rec.opReal) || plan) : plan;
     const baseMac = this.macrosOf(plan);
+    if(!keepSauce) this.selSauce = rec ? (rec.salsa || null) : null;
 
     const lista = op=>this.opItems(op).map(([id,gr])=>{      
         const fd = this.foods[id];
@@ -259,6 +368,8 @@ const Diet = {
         </button>
         ${actual.prep?`<button class="b-info" id="mPrep" style="margin-top:8px">Ver preparación paso a paso</button>`:''}
       </div>
+
+      ${this.sauceBlock(actual)}
 
       <h4 class="sub">Cambiar de plato</h4>
       <p class="hint">Cada alternativa muestra su desviación frente al plato planificado.
@@ -290,18 +401,29 @@ const Diet = {
     el('mConfirm').onclick = ()=>this.confirmMeal(f, c, actual.id, plan.id, actual.id===plan.id ? 'plan' : 'modificado');
     el('mealModalBody').querySelectorAll('.swap').forEach(b=>b.onclick = ()=>{
       const op = M.op.find(o=>o.id===b.dataset.op);
+      if(this.selSauce && !this.saucesFor(op.id).some(([sid])=>sid===this.selSauce))
+        this.selSauce = null;
       this.confirmMeal(f, c, op.id, plan.id, op.id===plan.id?'plan':'modificado');
     });
     el('mFree').onclick = ()=>this.freeMeal(f, c, plan.id);
     if(actual.prep) el('mPrep').onclick = ()=>this.showPrep(c, actual.id);
     el('mealModalBody').querySelectorAll('[data-prep]').forEach(b=>b.onclick = ()=>
       this.showPrep(c, b.dataset.prep));
+    el('mealModalBody').querySelectorAll('[data-sauce]').forEach(b=>b.onclick = ()=>{
+      this.selSauce = (this.selSauce===b.dataset.sauce) ? null : b.dataset.sauce;
+      this.openMeal(f, c, true);
+    });
+    el('mealModalBody').querySelectorAll('[data-sprep]').forEach(b=>b.onclick = ()=>
+      this.showSaucePrep(b.dataset.sprep));
   },
 
   async confirmMeal(f, c, opReal, opPlan, estado){
     const op = MEALS[c].op.find(o=>o.id===opReal);
+    const sid = this.selSauce;
+    const items = this.opItems(op).concat(sid ? this.sauceItems(sid,1) : []);
     await DB.put('intake',{id:f+'|'+c, fecha:f, comida:c, opPlan, opReal, estado,
-      items:this.opItems(op), tot:this.macrosOf(op), notas:null});
+      salsa:sid||null, items, tot:Calc.macros(items,this.foods), notas:null});
+    this.selSauce = null;
     await this.reload();
     this.openDay(f);
   },

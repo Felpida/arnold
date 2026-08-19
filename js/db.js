@@ -378,10 +378,10 @@ const Export = {
   async dieta(){
     const ins = (await DB.getAll('intake')).sort((a,b)=>a.id<b.id?-1:1);
     const out = ins.map(r=>[r.fecha, r.comida, r.opPlan, r.opReal, r.estado,
-      csvNum(r.tot?.kcal,0), csvNum(r.tot?.p), csvNum(r.tot?.c),
+      r.salsa || '', csvNum(r.tot?.kcal,0), csvNum(r.tot?.p), csvNum(r.tot?.c),
       csvNum(r.tot?.g), csvNum(r.tot?.fib), r.notas]);
     return toCsv(['fecha','comida','opcion_planificada','opcion_realizada','estado',
-      'kcal','proteina_g','hidratos_g','grasa_g','fibra_g','notas'], out);
+      'salsa','kcal','proteina_g','hidratos_g','grasa_g','fibra_g','notas'], out);
   },
 
   async backup(){

@@ -101,7 +101,16 @@ const FOODS = {
                   m:'—', kcal:30, p:1.0, c:6.7, g:0.2, fib:1.8,
                   nota:'Mezcla a partes iguales. Cortar en la sesión de batch cooking: aguanta 3-4 días.'},
   brocoli:       {n:'Brócoli fresco', m:'—', kcal:34, p:2.8, c:7, g:0.4, fib:2.6,
-                  nota:'Peso ya limpio, sin tronco. Al comprar, cuenta ~25 % de merma.'}
+                  nota:'Peso ya limpio, sin tronco. Al comprar, cuenta ~25 % de merma.'},
+  salsa_worcester:{n:'Salsa Worcestershire (Perrins)', m:'—', kcal:78, p:0.4, c:19, g:0, fib:0},
+  maicena:       {n:'Maicena (almidón de maíz)',   m:'Hacendado', kcal:350, p:0.5, c:85,  g:0.1, fib:0},
+  aceite_sesamo: {n:'Aceite de sésamo',            m:'—', kcal:900, p:0,   c:0,   g:100, fib:0,
+                  nota:'Aromático, no de cocinar: se usa en frío y al final, 3-5 g.'},
+  vinagre:       {n:'Vinagre de vino o de manzana',m:'Hacendado', kcal:20, p:0, c:0.6, g:0, fib:0},
+  limon:         {n:'Zumo de limón o lima',        m:'—', kcal:22, p:0.4, c:6.9, g:0.2, fib:0.3},
+  vino_blanco:   {n:'Vino blanco (para cocinar)',  m:'—', kcal:83, p:0.1, c:2.6, g:0, fib:0,
+                  nota:'Contado sin descontar el alcohol que evapora al reducir: sobrestima ~15 kcal por ración.'},
+  caldo_pollo:   {n:'Caldo de pollo',              m:'Hacendado', kcal:6, p:1, c:0.5, g:0.2, fib:0}                  
 };
 
 /* Alimentos vetados. La app los bloquea al escanear o al añadir a una receta. */
@@ -110,6 +119,102 @@ const FOOD_VETO = ['chocolate','alcachofa','bollería','dulces','quinoa','chía'
 
 /* Tomate natural: permitido pero desaconsejado por preferencia. Aviso, no bloqueo. */
 const FOOD_WARN = {tomate_natural:'Preferencia: tomate natural muy poco o nada.'};
+
+/* ═══════════════════ SALSAS ═══════════════════
+   Se preparan una vez y duran varios usos. `para` lista los platos
+   con los que encajan. Los macros se SUMAN al plato sin modificarlo:
+   las siete caben dentro o al borde de la tolerancia del ±10 %. */
+const SAUCES = {
+
+  tonkatsu:{n:'Salsa tonkatsu', cocina:'Japonesa', raciones:4,
+    it:[['tomate_frito',60],['salsa_soja',20],['salsa_worcester',15],['miel',12]],
+    para:['C7','C12','C3','C14'],
+    conserva:'2 semanas en nevera, en tarro cerrado',
+    prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Varillas o tenedor','Tarro con tapa'],
+      pasos:[
+        'Mezcla en el bol el tomate frito, la soja, la Worcestershire y la miel.',
+        'Bate hasta que quede homogéneo, sin grumos de miel.',
+        'Prueba: si te sabe muy dulce, un chorro más de Worcestershire; si muy ácido, algo más de miel.',
+        'Al tarro. No necesita cocción.'],
+      tip:'La salsa oficial del katsu y la más barata del catálogo: 28 kcal por ración.'}},
+
+  teriyaki:{n:'Salsa teriyaki', cocina:'Japonesa', raciones:4,
+    it:[['salsa_soja',40],['miel',24],['jengibre',8],['maicena',4]],
+    para:['C7','C14','C15','CH','C3','C1'],
+    conserva:'1 semana en nevera. Espesa en frío: templa antes de usar',
+    prep:{t:'8 min', dif:'Fácil', ut:['Cazo pequeño','Rallador fino','Cuchara'],
+      pasos:[
+        'Ralla el jengibre muy fino.',
+        'En el cazo, mezcla soja, miel y jengibre. Fuego medio.',
+        'Disuelve la maicena en una cucharada de agua FRÍA aparte, y añádela cuando empiece a borbotear.',
+        'Remueve 1-2 minutos hasta que espese y cubra el dorso de la cuchara.',
+        'Fuera del fuego. Espesará más al enfriarse.'],
+      tip:'La maicena siempre se disuelve en agua fría antes de entrar. En polvo sobre líquido caliente hace grumos que ya no se van.'}},
+
+  asiatica:{n:'Salsa asiática de miel y ajo', cocina:'Asiática', raciones:4,
+    it:[['salsa_soja',45],['miel',25],['ajo',10],['maicena',5]],
+    para:['C7','C9','C14','C15','C16','CH','C1','C3'],
+    conserva:'1 semana en nevera',
+    prep:{t:'8 min', dif:'Fácil', ut:['Cazo pequeño','Prensa de ajo','Cuchara'],
+      pasos:[
+        'Pica o machaca el ajo muy fino. Que no queden trozos: al reducir se amargan.',
+        'Cazo a fuego medio-bajo con un hilo de aceite. Sofríe el ajo 30-40 segundos SIN que coja color.',
+        'Añade la soja y la miel. Remueve y deja que borbotee suave.',
+        'Disuelve la maicena en una cucharada de agua fría y añádela. Remueve 1-2 min hasta que espese.',
+        'Fuera del fuego.'],
+      tip:'El ajo dorado amarga toda la salsa. En cuanto huela y antes de que coja color, entra el líquido.'}},
+
+  yogur_ajo:{n:'Salsa de yogur y ajo', cocina:'Mediterránea', raciones:4,
+    it:[['yogur_griego0',160],['ajo',6],['limon',10],['aove',5]],
+    para:['C7','C12','C14','CE','C3','CB','CD'],
+    conserva:'4 días en nevera',
+    prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Prensa de ajo o rallador','Cuchara'],
+      pasos:[
+        'Machaca o ralla el ajo muy fino. En trozos, el picor se concentra en un bocado.',
+        'Mezcla el yogur con el ajo, el zumo de limón y el aceite.',
+        'Sal, pimienta y perejil picado si tienes.',
+        'Reposa 15 minutos en nevera: el ajo necesita ese tiempo para integrarse.'],
+      tip:'La única que SUMA proteína: +4 g por ración. La que menos descuadra la dieta.'}},
+
+  argelina:{n:'Salsa argelina ligera', cocina:'Magrebí', raciones:4,
+    it:[['yogur_griego0',120],['tomate_frito',60],['ajo',4],['aove',8]],
+    para:['C7','C14','CE','C3','C12'],
+    conserva:'4 días en nevera',
+    prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Prensa de ajo','Varillas'],
+      pasos:[
+        'Mezcla el yogur con el tomate frito hasta un naranja uniforme.',
+        'Añade el ajo machacado, el aceite, una cucharadita de pimentón dulce, media de comino y cayena al gusto.',
+        'Bate bien y reposa 20 minutos.'],
+      tip:'Base de yogur en lugar de mayonesa. La original tiene el triple de calorías; esta te deja el sabor por 49 kcal.'}},
+
+  soja_sesamo:{n:'Aliño de soja y sésamo', cocina:'Asiática', raciones:4,
+    it:[['salsa_soja',40],['aceite_sesamo',12],['vinagre',15],['sesamo',8],['miel',6]],
+    para:['C15','C16','CH','C14'],
+    conserva:'2 semanas en nevera. Agitar antes de usar',
+    prep:{t:'5 min', dif:'Muy fácil', ut:['Tarro con tapa','Sartén pequeña'],
+      pasos:[
+        'Tuesta el sésamo en la sartén sin aceite, 2 minutos a fuego medio removiendo. Cuando salte y huela, fuera.',
+        'Todos los ingredientes al tarro, tapa y agita 20 segundos.',
+        'Se separa al reposar: agita antes de cada uso.'],
+      tip:'El aceite de sésamo es aromático, no de cocinar: en frío y al final. Calentado pierde todo el aroma.'}},
+
+  espanola:{n:'Salsa española', cocina:'Española', raciones:6,
+    it:[['cebolla',150],['pimiento_verde',150],['zanahoria',160],['vino_blanco',150],
+        ['harina',10],['caldo_pollo',500],['aove',12]],
+    para:['C1','C3','C12','CB','CD','CE','CH'],
+    conserva:'5 días en nevera · 3 meses congelada en porciones',
+    prep:{t:'45 min', dif:'Media', ut:['Cazuela','Batidora de mano','Tabla y cuchillo','Colador (opcional)'],
+      pasos:[
+        'Corta cebolla, pimiento y zanahorias en trozos medianos. No hace falta finura: se va a triturar.',
+        'Aceite en la cazuela a fuego medio. Pocha la cebolla 6-8 min hasta transparente.',
+        'Añade pimiento y zanahoria y sofríe 8-10 min más. Que la verdura coja algo de color: ahí está el sabor.',
+        'Espolvorea la harina y remueve 1-2 minutos para tostarla. Si no la tuestas, la salsa sabrá a crudo.',
+        'Añade el vino y sube el fuego. Reduce 3-4 minutos hasta que se vaya el olor a alcohol.',
+        'Añade el caldo, sal, pimienta y una hoja de laurel. Fuego bajo, 20 minutos destapado.',
+        'Retira el laurel y tritura hasta que quede fina. Si la quieres de restaurante, pásala por el colador.',
+        'Si queda espesa, más caldo. Si clara, 5 minutos más al fuego.'],
+      tip:'Los dos minutos de tostado de la harina son el paso que no se salta. Es lo que separa una salsa española de un puré de verduras.'}}
+};
 
 /* ═══════════════════ COMIDAS Y EQUIVALENCIAS ═══════════════════
    Cada franja tiene una opción base (la del plan) y alternativas
@@ -604,7 +709,14 @@ const SHOP = {
   guisantes:       {sec:2, pack:1000, un:'bolsas de 1 kg'},
   verdura_fresca:  {sec:0, un:'g', granel:true,
                     nota:'Reparte a partes iguales entre calabacín, zanahoria, cebolla y pimiento.'},
-  brocoli:         {sec:0, factor:1.33, un:'g con tronco', granel:true}
+  brocoli:         {sec:0, factor:1.33, un:'g con tronco', granel:true},
+  salsa_worcester: {sec:5, pack:150,  un:'botellas de 150 ml'},
+  maicena:         {sec:5, pack:400,  un:'paquetes de 400 g'},
+  vinagre:         {sec:5, pack:750,  un:'botellas de 750 ml'},
+  vino_blanco:     {sec:5, pack:750,  un:'botellas de 750 ml'},
+  caldo_pollo:     {sec:5, pack:1000, un:'briks de 1 L'},
+  aceite_sesamo:   {sec:6, pack:250,  un:'botellas de 250 ml'},
+  limon:           {sec:0, ud:40,     un:'limones', nota:'Un limón da unos 40 ml de zumo.'}  
 };
 
 /* Extras que no salen del menú pero hay que comprar igual */
