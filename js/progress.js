@@ -499,7 +499,7 @@ const Progress = {
     if(adh!=null) push(adh>=90?'ok':'warn',`Adherencia de dieta: ${adh.toFixed(0)} % (14 días).`);
 
     const semana = Calc.weekNum(hoy);
-    if(semana===3) acc.push('Semana 3: registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
+    if(semana===5) acc.push('Semana 5: registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
     if(semana>0 && semana%2===0) acc.push('Semana par: toca toma de perímetros.');
 
         /* ── Disposición ↔ rendimiento, agrupado por semanas ── */
@@ -572,6 +572,19 @@ const Progress = {
       acc.push('Pasar a Nivel 2 esta semana: 3 sesiones full-body, cargas al 90 %, dieta a mantenimiento. En una semana mala no se abandona, se degrada.');
     }
 
+    /* ── Pausa de dieta: solo si se cumplen los tres criterios ── */
+    if(deficit){
+      const semEnFase = Math.floor(D.diffDays(ph.desde, hoy)/7);
+      const d14 = this.B.filter(b=>b.fecha>=D.add(hoy,-13))
+        .map(b=>Calc.readiness(b)).filter(v=>v!=null);
+      const dMed = d14.length>=7 ? d14.reduce((a,b)=>a+b,0)/d14.length : null;
+      if(semEnFase>=6 && dMed!=null && dMed<55 && trend!=null && trend>-0.2){
+        push('warn',`<strong>Criterios de pausa de dieta cumplidos:</strong> ${semEnFase} semanas
+          en déficit, disposición media de ${dMed.toFixed(0)} y pérdida estancada.`);
+        acc.push('Pausa de dieta de 7-10 días a mantenimiento. No es un fallo: es lo que hace que las 20 semanas se completen en lugar de abandonarse en la 14.');
+      }
+    }
+    
     el('checkinBody').innerHTML = `
       <p class="hint">${ph.n} · Semana ${semana<1?0:semana} · ${D.labelLong(hoy)}</p>
       ${out.map(o=>`<p class="verdict ${o.t==='ok'?'ok':o.t==='bad'?'bad':o.t==='warn'?'warn':''}">${o.txt}</p>`).join('')}
@@ -602,8 +615,8 @@ const Progress = {
     if(!hoyB || hoyB.peso==null)
       av.push('<strong>Pesarte y registrarlo</strong> — en ayunas, después del baño. El dato de hoy falta.');
 
-    if(Calc.weekNum(hoy)===3)
-      av.push('<strong>Semana 3</strong> — registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
+    if(Calc.weekNum(hoy)===5)
+      av.push('<strong>Semana 5</strong> — registrar las 7 marcas de referencia a RIR 2. Sin tests a 1RM.');
 
     if(D.dow(hoy)===0)
       av.push('<strong>Es domingo</strong> — revisión semanal, exportar backup y batch cooking de lunes a miércoles.');

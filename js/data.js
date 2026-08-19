@@ -122,7 +122,7 @@ const EX = {
 
   /* ── Deltoides posterior ── */
   pajaros_maq:   {n:'Pájaros en máquina', g:G.DP, p:'abducción horizontal', r:90,
-                  sub:['pajaros_mancu','pajaros_polea','remo_cuello'],
+                  sub:['pajaros_polea','pajaros_mancu','remo_cuello'],
                   tip:'Codos ligeramente flexionados, sin encoger el trapecio.'},
   pajaros_mancu: {n:'Pájaros con mancuernas', g:G.DP, p:'abducción horizontal', r:90,
                   sub:['pajaros_maq','pajaros_polea']},
@@ -203,22 +203,20 @@ const EX = {
   ext_tri_unilateral:{n:'Extensión tríceps unilateral en polea', g:G.TRI, p:'extensión de codo', r:60,
                   sub:['ext_tri_polea','press_frances']},
 
-  /* ── Core ── */
+    /* ── Core ── */
   plancha:       {n:'Plancha frontal', g:G.COR, p:'antiextensión', r:60, unidad:'seg',
-                  sub:['rueda_abs','plancha_lastre'],
+                  sub:['plancha_lastre','hollow_hold','dead_bug'],
                   tip:'Glúteo apretado, sin arquear lumbar.'},
   plancha_lastre:{n:'Plancha con lastre', g:G.COR, p:'antiextensión', r:60, unidad:'seg',
-                  sub:['plancha','rueda_abs']},
+                  sub:['plancha','hollow_hold']},
   rueda_abs:     {n:'Rueda abdominal', g:G.COR, p:'antiextensión', r:60,
                   sub:[], veto:true,
                   tip:'VETADO por preferencia.'},
-  crunch_polea:  {n:'Crunch en polea', g:G.COR, p:'flexión de tronco', r:60,
-                  sub:['rueda_abs','elevacion_piernas']},
   elevacion_piernas:{n:'Elevación de piernas colgado de barra', g:G.COR, p:'flexión de tronco', r:60,
                   sub:[], veto:true,
                   tip:'VETADO. Con tu fuerza de tracción actual el agarre y la estabilidad escapular fallan antes que el abdomen: no estimula el core y suma fatiga al hombro.'},
-  pallof:        {n:'Pallof press (por lado)', g:G.COR, p:'antirrotación', r:60,
-                  sub:['plancha_lateral'],
+  crunch_polea:  {n:'Crunch en polea', g:G.COR, p:'flexión de tronco', r:60,
+                  sub:['elev_piernas_silla','elev_rodillas_paralelas']},
   elev_piernas_silla:{n:'Elevación de piernas en silla romana', g:G.COR, p:'flexión de tronco', r:60,
                   sub:['elev_rodillas_paralelas','crunch_polea','hollow_hold'],
                   tip:'Espalda apoyada, sin balancear. Sube por contracción abdominal, no por impulso de cadera. Baja controlado 2 s.'},
@@ -230,9 +228,16 @@ const EX = {
                   tip:'Lumbar pegada al suelo todo el rato. Si se despega, has ido demasiado lejos.'},
   hollow_hold:   {n:'Hollow hold', g:G.COR, p:'antiextensión', r:60, unidad:'seg',
                   sub:['plancha','dead_bug']},
+  pallof:        {n:'Pallof press (por lado)', g:G.COR, p:'antirrotación', r:60,
+                  sub:['plancha_lateral'],
                   tip:'Antirrotación. Sin girar el tronco.'},
   plancha_lateral:{n:'Plancha lateral', g:G.COR, p:'antirrotación', r:60, unidad:'seg',
-                  sub:['pallof','plancha']}
+                  sub:['pallof','plancha']},
+  remo_maq_sentado:{n:'Remo sentado en máquina, agarre neutro', g:G.EM, p:'tracción horizontal', r:120,
+                  sub:['remo_maq_unilateral','remo_polea_baja','remo_maquina','remo_1mano'],
+                  tip:'Pecho firme contra el respaldo. Retraer escápulas antes de tirar. Usa correas si el agarre limita.'},
+  remo_maq_unilateral:{n:'Remo unilateral en máquina', g:G.EM, p:'tracción horizontal', r:120,
+                  sub:['remo_maq_sentado','remo_polea_baja','remo_1mano']}
 };
 
 /* ═══════════════════ PLANTILLAS DE SESIÓN ═══════════════════
@@ -257,25 +262,25 @@ const SESSIONS = {
         ['pajaros_maq',2,15,0],['curl_z',2,12,0],['ext_tri_polea',2,15,0],['face_pull',2,20,0]]},
 
   /* ── FASE A · Semanas 1-3 (24 ago - 13 sep) ── */
-  D1:{n:'D1 Lunes · Tirón A — Anchura', fase:'A', dia:1, dur:75,
+  D1:{n:'D1 Lunes · Tirón A — Anchura', fase:'A', dia:1, dur:80,
     nota:'Prioridad nº1 del año: tracción vertical.',
         ex:[['jalon_ancho',3,10,50],['dominada_asist',3,8,40],['remo_maquina',3,12,0],
-        ['pullover_polea',2,15,0],['pajaros_maq',3,15,0],
+        ['pullover_polea',2,15,0],['pajaros_polea',3,15,0],
         ['face_pull',2,20,0],['rot_externa',2,15,0],['elev_piernas_silla',3,12,0]]},
 
-  D2:{n:'D2 Martes · Empuje', fase:'A', dia:2, dur:70,
+  D2:{n:'D2 Sábado · Empuje', fase:'A', dia:6, dur:70,
     nota:'Recordatorio: el press militar con barra libre no vuelve al programa.',
     ex:[['press_banca',3,8,50],['press_incl_mancu',3,10,18],['press_hombro_mancu',3,10,14],
         ['elev_lat_mancu',3,15,7],['ext_tri_polea',3,12,0],['face_pull',2,20,0]]},
 
-  D3:{n:'D3 Miércoles · Pierna y core', fase:'A', dia:3, dur:80,
-    nota:'Mantenimiento estricto. Sin cinturón en toda la Fase A. La recuperación que ahorras aquí se invierte en espalda y hombro.',
-        ex:[['sentadilla',4,6,100],['rdl',3,10,45],['prensa',3,12,0],
+  D3:{n:'D3 Martes · Pierna y core', fase:'A', dia:2, dur:80,
+    nota:'Mantenimiento estricto: 7 series de cuádriceps conservan los 155 kg. El baloncesto del fin de semana aporta el resto. Sin cinturón en la Fase A.',
+    ex:[['sentadilla',4,6,100],['rdl',3,10,45],['prensa',3,12,0],
         ['curl_femoral',3,12,0],['gemelo_pie',3,15,0],['plancha',2,40,0],['pallof',2,12,0]]},
 
   D4:{n:'D4 Jueves · Tirón B — Densidad', fase:'A', dia:4, dur:80,
-    nota:'El remo en barra es el ejercicio más importante del año: de 40×8 a 80×8 en 15 semanas.',
-    ex:[['remo_barra',4,8,30],['jalon_neutro',3,10,50],['remo_1mano',3,12,20],
+    nota:'El remo en barra es el ejercicio más importante del año: de 30×8 a 70×8 en enero.',
+    ex:[['remo_barra',4,8,30],['jalon_neutro',3,10,50],['remo_maq_sentado',3,12,0],
         ['encogimiento',3,15,0],['elev_lat_polea',3,15,0],
         ['curl_z',2,10,0],['curl_martillo',2,12,0],['rot_externa',2,15,0]]},
 
@@ -304,11 +309,23 @@ const SESSIONS = {
         ['pajaros_mancu',3,15,0],['face_pull_banda',2,20,0]]}
 };
 
-/* Reparto semanal L-V de la Fase A. 0 = domingo. */
-const WEEK_PLAN = {1:'D1', 2:'D2', 3:'D3', 4:'D4', 5:'D5'};
+/* Reparto semanal definitivo. 0 = domingo.
+   L tirón A · M pierna · X rodaje · J tirón B · V hombro · S empuje · D rodaje o baloncesto.
+   Los dos días de tirón separados 72 h exactas: es la prioridad del año. */
+const WEEK_PLAN = {1:'D1', 2:'D3', 4:'D4', 5:'D5', 6:'D2'};
 
-/* RIR objetivo por semana dentro del mesociclo de 6 semanas */
-const RIR_WEEK = {1:3, 2:3, 3:2, 4:2, 5:1, 6:'descarga'};
+/* Semana 1 (19-23 ago): se arranca en miércoles con 5 sesiones.
+   El domingo no puede ser tirón ni pierna, porque el lunes 24 empieza con D1
+   y el martes con pierna. Por eso el domingo lleva el D5, el más ligero. */
+const WEEK1 = {
+  '2026-08-19':'D2', '2026-08-20':'D1', '2026-08-21':'D3',
+  '2026-08-22':'D4', '2026-08-23':'D5'
+};
+
+/* RIR objetivo · ciclo de 5 semanas SIN descarga programada.
+   La bajada de RIR 1 a RIR 3 es la recuperación. La descarga solo
+   se aplica cuando la autorregulación la dispara. */
+const RIR_WEEK = {1:3, 2:3, 3:2, 4:2, 5:1};
 
 /* ═══════════════════ RUNNING ═══════════════════ */
 const RUN_TYPES = {
@@ -321,49 +338,51 @@ const RUN_TYPES = {
   caminata:{n:'Caminata', ritmo:'—', fc:'—'}
 };
 
-/* Plan de running de la Fase A. Semana 0 incluida. */
+/* El running es gasto calórico adicional, nunca el motor.
+   Miércoles corto y domingo largo. El baloncesto sustituye al rodaje
+   del domingo: los dos trayectos de 20 min son la sesión. */
 const RUN_PLAN = {
-  0:[{d:6,t:'z2',min:20},{d:0,t:'caminata',min:40}],
-  1:[{d:6,t:'z2',min:25},{d:0,t:'caminata',min:45}],
-  2:[{d:5,t:'z2',min:20},{d:6,t:'z2',min:30},{d:0,t:'z2',min:20}],
-  3:[{d:5,t:'z2',min:20},{d:6,t:'z2',min:35},{d:0,t:'z2',min:25}]
+  1:[],                                                     // semana de transición: 5 días de gimnasio
+  2:[{d:3,t:'z2',min:25},{d:0,t:'largo',min:30}],
+  3:[{d:3,t:'z2',min:25},{d:0,t:'largo',min:35}],
+  4:[{d:3,t:'z2',min:30},{d:0,t:'largo',min:40}]
 };
 
-/* ═══════════════════ FASES DEL MACROCICLO ═══════════════════ */
+/* Patrón por defecto desde la semana 5 */
+const RUN_DEFAULT = [{d:3,t:'z2',min:30},{d:0,t:'largo',min:45}];
+
+/* ═══════════════════ FASES DEL MACROCICLO ═══════════════════
+   19 ago 2026 – 4 jul 2027 · 10,5 meses
+   Sin fase navideña, sin peaking, sin descargas programadas.
+   Las calorías de B en adelante son PROVISIONALES: se recalculan
+   sobre el gasto real medido el 30 de agosto. */
 const PHASES = [
-  {id:'S0', n:'Semana 0 · Anclaje',        desde:'2026-08-19', hasta:'2026-08-23',
-   kcal:2559, prot:162, hc:316, grasa:76, pasos:5000, dormir:'00:00'},
-  {id:'A',  n:'Fase A · Calibración',      desde:'2026-08-24', hasta:'2026-09-13',
-   kcal:2559, prot:162, hc:316, grasa:76, pasos:6500, dormir:'23:30'},
-  {id:'B',  n:'Fase B · Recomposición',    desde:'2026-09-14', hasta:'2026-12-06',
-   kcal:2350, prot:160, hc:270, grasa:70, pasos:8000, dormir:'23:30'},
-  {id:'C',  n:'Fase C · Mantenim. navideño',desde:'2026-12-07', hasta:'2027-01-03',
-   kcal:2700, prot:160, hc:330, grasa:80, pasos:8000, dormir:'23:30'},
-  {id:'D',  n:'Fase D · Peaking 10K',      desde:'2027-01-04', hasta:'2027-02-14',
-   kcal:2500, prot:160, hc:300, grasa:70, pasos:9000, dormir:'23:30'},
-  {id:'E',  n:'Fase E · Descarga',         desde:'2027-02-15', hasta:'2027-02-21',
-   kcal:2650, prot:160, hc:320, grasa:78, pasos:8000, dormir:'23:30'},
-  {id:'F',  n:'Fase F · Hipertrofia',      desde:'2027-02-22', hasta:'2027-05-16',
-   kcal:2950, prot:165, hc:390, grasa:82, pasos:8000, dormir:'23:30'},
-  {id:'G',  n:'Fase G · Definición',       desde:'2027-05-17', hasta:'2027-07-11',
-   kcal:2300, prot:170, hc:250, grasa:68, pasos:10000, dormir:'23:30'},
-  {id:'H',  n:'Fase H · Estabilización',   desde:'2027-07-12', hasta:'2027-08-22',
-   kcal:2650, prot:160, hc:320, grasa:78, pasos:9000, dormir:'23:30'}
+  {id:'A', n:'Fase A · Calibración',   desde:'2026-08-19', hasta:'2026-08-30',
+   kcal:2500, prot:162, hc:292, grasa:72, pasos:6000,  dormir:'23:45'},
+  {id:'B', n:'Fase B · Recomposición', desde:'2026-08-31', hasta:'2027-01-17',
+   kcal:2350, prot:160, hc:270, grasa:70, pasos:8000,  dormir:'23:30'},
+  {id:'C', n:'Fase C · Hipertrofia',   desde:'2027-01-18', hasta:'2027-04-11',
+   kcal:2900, prot:165, hc:380, grasa:82, pasos:8000,  dormir:'23:30'},
+  {id:'D', n:'Fase D · Definición',    desde:'2027-04-12', hasta:'2027-06-06',
+   kcal:2250, prot:170, hc:240, grasa:65, pasos:10000, dormir:'23:30'},
+  {id:'E', n:'Fase E · Cierre',        desde:'2027-06-07', hasta:'2027-07-04',
+   kcal:2600, prot:160, hc:315, grasa:75, pasos:9000,  dormir:'23:30'}
 ];
 
 /* Hitos verificables del macrociclo */
 const MILESTONES = [
-  {f:'2026-09-13', t:'Cierre Fase A: TDEE real + 7 marcas de referencia'},
-  {f:'2026-10-25', t:'Retest 1: marcas de feb-abr recuperadas'},
-  {f:'2026-12-06', t:'75,5 kg · dominada 8 sin asistencia · remo 80×8 · RDL 90×8'},
-  {f:'2027-01-03', t:'Peso mantenido en 75,5 ± 0,5 kg'},
-  {f:'2027-02-14', t:'10 K — objetivo 53:00 (5:18/km)'},
-  {f:'2027-05-16', t:'77,5 kg · perímetro de hombros +4 cm'},
-  {f:'2027-07-11', t:'73,0 kg · 11-12 % grasa · abdominales visibles'},
-  {f:'2027-08-22', t:'72,5-74 kg estabilizado'}
+  {f:'2026-08-30', t:'Cierre Fase A: primera lectura del gasto real'},
+  {f:'2026-09-20', t:'Las 7 marcas de referencia a RIR 2. Sin tests a 1RM'},
+  {f:'2026-11-15', t:'Dominada a peso corporal × 8 · remo en barra 60×8'},
+  {f:'2027-01-03', t:'Cintura por debajo de 87,5 cm (cintura/altura 0,50)'},
+  {f:'2027-01-17', t:'72,2 kg · 14,4 % grasa · remo 70×8 · RDL 90×8'},
+  {f:'2027-02-14', t:'10 K — objetivo 56:00-58:00'},
+  {f:'2027-04-11', t:'75,8 kg · hombros 118 cm (+4) · masa magra 63,9 kg'},
+  {f:'2027-06-06', t:'71,6 kg · 11 % grasa · abdominales visibles'},
+  {f:'2027-07-04', t:'71,3 kg · 10,2 % · ratio hombro/cintura 1,42'}
 ];
 
-/* Marcas de referencia a registrar en la Semana 3 (RIR 2, sin tests a 1RM) */
+/* Marcas de referencia a registrar en la Semana 5 (RIR 2, sin tests a 1RM) */
 const BENCHMARKS = [
   {ex:'sentadilla',         reps:6,  nota:'6 reps @ RIR 2'},
   {ex:'press_banca',        reps:8,  nota:'8 reps @ RIR 2'},

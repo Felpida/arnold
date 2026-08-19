@@ -223,32 +223,35 @@ const Calc = {
     return PHASES.find(p=>fecha>=p.desde && fecha<=p.hasta) || PHASES[PHASES.length-1];
   },
 
-  /* Semana del programa. Semana 1 = lunes 24 ago 2026. Negativa = Semana 0. */
+  /* Semana del programa. Semana 1 = la del lunes 17 ago 2026,
+     que arranca en miércoles 19 con 5 sesiones. */
   weekNum(fecha){
-    const n = D.diffDays('2026-08-24', D.weekStart(fecha));
+    const n = D.diffDays('2026-08-17', D.weekStart(fecha));
     return Math.floor(n/7)+1;
   },
 
-  /* RIR objetivo según la semana dentro del mesociclo de 6 */
+  /* RIR objetivo. La Fase A (semanas 1-2) tiene rampa propia porque
+     se viene de 4 meses de parón. Desde la semana 3 entra el ciclo de 5. */
   rirFor(fecha){
     const w = Calc.weekNum(fecha);
-    if(w<1)return 5;                        // Semana 0
-    return RIR_WEEK[((w-1)%6)+1];
+    if(w<1) return 4;
+    if(w===1) return 4;
+    if(w===2) return 3;
+    return RIR_WEEK[((w-3)%5)+1];
   },
 
   /* Sesión de gimnasio planificada para una fecha */
   plannedSession(fecha){
-    const w = Calc.weekNum(fecha), dow = D.dow(fecha);
-    if(w<1){                                // Semana 0: mié/jue/vie
-      return {3:'S0A', 4:'S0B', 5:'S0C'}[dow] || null;
-    }
-    return WEEK_PLAN[dow] || null;
+    if(WEEK1[fecha]) return WEEK1[fecha];   // semana 1 de transición
+    if(fecha < '2026-08-24') return null;
+    return WEEK_PLAN[D.dow(fecha)] || null;
   },
 
   /* Sesiones de running planificadas para una fecha */
   plannedRuns(fecha){
     const w = Calc.weekNum(fecha), dow = D.dow(fecha);
-    return (RUN_PLAN[Math.max(0,w)]||[]).filter(r=>r.d===dow);
+    const plan = (w>=1 && RUN_PLAN[w]) ? RUN_PLAN[w] : (w>=1 ? RUN_DEFAULT : []);
+    return plan.filter(r=>r.d===dow);
   },
 
   /* Ritmo min/km a partir de km y segundos */
