@@ -23,6 +23,17 @@ const Train = {
     el('subModalClose').onclick = ()=>this.closeModal('subModal');
     el('bSaveRun').onclick = ()=>this.saveRun();
     el('logBack').onclick = ()=>this.exitLog();
+    el('logDiscard').onclick = async()=>{
+      if(!this.W) return;
+      const ok = await this.deleteWorkout(this.W.id,
+        'Se descartará esta sesión y todo lo que hayas registrado en ella.\n\n¿Continuar?');
+      if(ok){
+        this.W = null;
+        el('logView').classList.add('hide');
+        el('finishView').classList.add('hide');
+        el('trainView').classList.remove('hide');
+      }
+    };
 
     el('runTipo').innerHTML = Object.entries(RUN_TYPES)
       .map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
@@ -129,15 +140,33 @@ const Train = {
       ${runs.map(r=>`<p>${RUN_TYPES[r.tipo]?.n} · ${r.km} km · ${Calc.pace(r.km,r.seg)}/km</p>`).join('')}</div>`;
 
     h += '<div class="row c2" style="margin-top:14px">';
-    if(done) h += `<button data-act="sum">Ver resumen</button>`;
+    if(done) h += `<button class="b-info" data-act="sum">Ver resumen</button>`;
     if(S && !done) h += `<button class="primary" data-act="${draft?'resume':'start'}">
       ${draft?'Continuar sesión':'Empezar sesión'}</button>`;
     if(S && done) h += `<button data-act="start">Registrar otra vez</button>`;
     h += '</div>';
+    if(draft) h += `<button class="b-bad" data-act="deldraft" style="margin-top:8px">
+      Descartar el borrador</button>`;
+    if(done)  h += `<button class="b-bad" data-act="deldone" style="margin-top:8px">
+      Borrar la sesión registrada</button>`;
 
     el('dayModalBody').innerHTML = h;
     el('dayModalBody').querySelectorAll('[data-act]').forEach(b=>b.onclick = async()=>{
       const a = b.dataset.act;
+
+      if(a==='deldraft'){
+        if(await this.deleteWorkout(draft.id,
+          'Se descartará el borrador de esta sesión.\n\n¿Continuar?')) this.closeModal('dayModal');
+        return;
+      }
+      if(a==='deldone'){
+        if(await this.deleteWorkout(done.id,
+          `Se borrará la sesión ${done.sesion} del ${D.label(done.fecha)} con todas sus series.\n\n` +
+          'Dejará de contar para el volumen, las marcas y la progresión. ¿Continuar?'))
+          this.closeModal('dayModal');
+        return;
+      }
+
       this.closeModal('dayModal');
       if(a==='sum') this.showSummary(done);
       else if(a==='resume') this.enterLog(draft);
@@ -186,13 +215,34 @@ const Train = {
     this.renderExercise();
   },
 
-  exitLog(){
-
+  async exitLog(){
+    const W = this.W;
     el('logView').classList.add('hide');
     el('finishView').classList.add('hide');
     el('trainView').classList.remove('hide');
     this.W = null;
-    this.reload();
+    // Si abriste la sesión por error y no registraste nada, no deja rastro
+    if(W && W.id && this.draftIsEmpty(W)) await DB.del('workouts', W.id);
+    await this.reload();
+    await App.renderHoy();
+  },
+
+  /* Un borrador se considera vacío si no se ha tocado nada: ningún ejercicio
+     marcado como hecho, ningún RIR introducido y ninguna nota. Las cargas y
+     reps no cuentan porque vienen precargadas de la plantilla. */
+  draftIsEmpty(W){
+    if(!W || W.estado!=='draft') return true;
+    return !(W.ex||[]).some(e=>
+      e.hecho || e.nota || (e.sets||[]).some(s=>s.rir!=null));
+  },
+
+  async deleteWorkout(id, aviso){
+    if(!confirm(aviso)) return false;
+    await DB.del('workouts', id);
+    Timer && null;                       // sin efecto, evita referencias sueltas
+    await this.reload();
+    await App.renderHoy();
+    return true;
   },
 
   renderExercise(){
@@ -563,12 +613,20 @@ const Train = {
     const km7 = this.cacheR.filter(r=>r.fecha>=D.add(t,-6))
       .reduce((s,r)=>s+(r.km||0),0);
     el('runHist').innerHTML = `<p class="hint">Últimos 7 días: <strong>${km7.toFixed(1)} km</strong>
-      · límite del plan antes del 10 K: 35 km/semana</p>` +
-      (rs.length?`<table><tr><th>Fecha</th><th>Tipo</th><th class="n">km</th><th class="n">Ritmo</th><th class="n">FC</th></tr>
+      · techo del plan antes del 10 K: 35 km/semana</p>` +
+      (rs.length?`<table><tr><th>Fecha</th><th>Tipo</th><th class="n">km</th>
+        <th class="n">Ritmo</th><th class="n">FC</th><th></th></tr>
       ${rs.map(r=>`<tr><td>${D.label(r.fecha)}</td><td>${RUN_TYPES[r.tipo]?.n||r.tipo}</td>
         <td class="n">${(r.km||0).toFixed(2)}</td><td class="n">${Calc.pace(r.km,r.seg)||'—'}</td>
-        <td class="n">${r.fcMedia??'—'}</td></tr>`).join('')}</table>`
+        <td class="n">${r.fcMedia??'—'}</td>
+        <td class="n"><button class="mini" data-delrun="${r.id}">✕</button></td></tr>`).join('')}</table>`
       :'<p class="hint">Sin carreras registradas.</p>');
+
+    el('runHist').querySelectorAll('[data-delrun]').forEach(b=>b.onclick = async()=>{
+      if(!confirm('¿Borrar esta carrera?')) return;
+      await DB.del('runs', +b.dataset.delrun);
+      await this.reload();
+    });
   },
 
   async saveRun(){

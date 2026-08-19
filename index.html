@@ -387,7 +387,10 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
   </div>
 
   <div id="logView" class="hide">
-    <button class="link" id="logBack">← Salir de la sesión</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <button class="link" id="logBack">← Salir de la sesión</button>
+      <button class="link" id="logDiscard" style="color:var(--bad)">Descartar sesión</button>
+    </div>
     <div class="card">
       <div id="logHead"></div>
       <div id="logProgress" style="margin-top:10px"></div>
