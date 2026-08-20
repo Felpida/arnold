@@ -225,9 +225,59 @@ ol.pasos li{margin-bottom:5px}
 /* ── Sub-pestañas ── */
 .subtabs{display:flex;gap:6px;margin-bottom:12px;background:var(--card2);
   padding:4px;border-radius:12px}
-.subtabs button{padding:9px 6px;font-size:13px;background:transparent;border:none;
+.subtabs button{padding:9px 4px;font-size:12.5px;background:transparent;border:none;
   border-radius:9px;color:var(--tx2);font-weight:600}
 .subtabs button.on{background:var(--card);color:var(--tx);box-shadow:var(--sh)}
+
+/* ── Menú seguido: hojas de día, scroll continuo ── */
+.mn-head{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:20;
+  background:rgba(245,247,250,.94);backdrop-filter:blur(8px);
+  border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  font-size:12.5px;font-weight:650;box-shadow:var(--sh)}
+.mn-head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:capitalize}
+.mn-head em{font-style:normal;color:var(--tx2);font-weight:500;flex:0 0 auto;
+  font-variant-numeric:tabular-nums}
+
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.sheet-h{padding:14px;border-bottom:2px solid var(--line2);display:flex;
+  justify-content:space-between;align-items:flex-start;gap:10px}
+.sheet-h h3{margin:0;text-transform:capitalize;font-size:16px}
+.sheet-h .hint{margin:3px 0 0}
+.sheet-b{padding:14px}
+
+.fr{padding-bottom:13px;margin-bottom:13px;border-bottom:1px dashed var(--line2)}
+.fr:last-of-type{border-bottom:none;margin-bottom:4px;padding-bottom:0}
+.fr-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+.fr-h strong{font-size:14.5px;line-height:1.3}
+.fr-h .hora{font-size:10.5px;color:var(--tx3);font-weight:800;letter-spacing:.07em}
+.fr-mac{font-size:11.5px;color:var(--tx2);font-variant-numeric:tabular-nums;
+  text-align:right;white-space:nowrap;flex:0 0 auto;line-height:1.45}
+.fr-mac strong{font-size:14px;color:var(--tx)}
+.fr table{margin-top:5px}
+.fr table td{padding:5px 4px}
+.fr .note{margin:8px 0 0}
+
+.tot{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:2px}
+.tot>div{background:var(--card2);border:1px solid var(--line);border-radius:9px;
+  padding:8px 3px;text-align:center}
+.tot b{display:block;font-size:14.5px;font-variant-numeric:tabular-nums;line-height:1.2}
+.tot span{display:block;font-size:9px;color:var(--tx2);text-transform:uppercase;
+  letter-spacing:.04em;margin-top:2px}
+.tot>div.ok{background:var(--ac-bg);border-color:var(--ac-ln)}
+.tot>div.warn{background:var(--warn-bg);border-color:var(--warn-ln)}
+.tot>div.bad{background:var(--bad-bg);border-color:var(--bad-ln)}
+
+/* Imprimir a PDF: cada día en su hoja, sin cromo de la app */
+@media print{
+  header,nav,.subtabs,.mn-head,#dt-menu>.card{display:none !important}
+  body{padding:0;background:#fff}
+  main{max-width:none;padding:0}
+  .sheet{break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always;
+    box-shadow:none;border:none;margin:0}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+}
 
 /* ── Modales ── */
 .modal{position:fixed;inset:0;z-index:60;background:rgba(29,39,51,.4);
@@ -452,6 +502,7 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
 <section id="v-dieta">
   <div class="subtabs" id="dietTabs">
     <button class="on" data-dt="cal">Calendario</button>
+    <button data-dt="menu">Menú</button>
     <button data-dt="shop">Compra</button>
     <button data-dt="rec">Recetas</button>
     <button data-dt="food">Alimentos</button>
@@ -466,9 +517,43 @@ nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;
         <button id="dietNext">›</button>
       </div>
       <div id="dietCal"></div>
-      <p class="hint">La letra de cada día es la cena de la rotación (A huevos · B pescado ·
-        C legumbre). Pulsa un día para ver y confirmar las cinco comidas.</p>
+      <p class="hint">El código de cada día es la <strong>cena</strong> que toca
+        (CC y CC2 son las de legumbre, CL y CM las de 5 y 10 minutos).
+        Pulsa un día para ver y confirmar las cinco comidas, o vete a
+        <strong>Menú</strong> para verlos seguidos.</p>
     </div>
+  </div>
+
+  <!-- ── MENÚ SEGUIDO · vista de documento ── -->
+  <div id="dt-menu" class="hide">
+    <div class="card">
+      <h2>Menú seguido</h2>
+      <div class="row c2">
+        <div><label>Desde</label><input id="mnDesde" type="date" class="key"></div>
+        <div><label>Intervalo</label><select id="mnDias">
+          <option value="1">1 día</option>
+          <option value="2">2 días</option>
+          <option value="3" selected>3 días · una tanda</option>
+          <option value="4">4 días</option>
+          <option value="5">5 días</option>
+          <option value="6">6 días</option>
+          <option value="7">7 días · una semana</option>
+        </select></div>
+      </div>
+      <div class="row c3">
+        <button class="b-info" id="mnHoy">Hoy</button>
+        <button class="b-info" id="mnTanda">Tanda actual</button>
+        <button class="b-info" id="mnSemana">Esta semana</button>
+      </div>
+      <button class="b-info" id="mnShare">Compartir o exportar</button>
+      <p class="note">Baja y vas viendo el menú que toca, un día tras otro.
+        <strong>Almuerzo y comida son el mismo plato los tres días de cada tanda</strong>;
+        el desayuno, el pre-entreno y la cena cambian a diario. Gramajes
+        <strong>en crudo</strong> para carnes, pescados, arroz y pasta.
+        Para PDF: imprime la página desde el navegador — cada día sale en su propia hoja.</p>
+    </div>
+    <div id="mnHead" class="mn-head"></div>
+    <div id="mnDoc"></div>
   </div>
 
   <div id="dt-shop" class="hide">

@@ -8,25 +8,38 @@
    calculan desde aquí, nunca se escriben a mano. */
 const FOODS = {
 
-  /* ── Lácteos y huevo ── */
+  /* ── Lácteos y huevo ──
+     SKYR RETIRADO (19/08/2026, decisión del usuario). Su hueco lo cubre
+     yogur_griego0, que ya estaba en la lista: cero líneas nuevas de compra. */
   queso_batido:  {n:'Queso batido 0 %',            m:'Hacendado', kcal:47,  p:10.5, c:4,    g:0.2,  fib:0},
-  skyr:          {n:'Skyr natural',                m:'Hacendado', kcal:63,  p:11,   c:4,    g:0.2,  fib:0},
+  queso_cottage: {n:'Queso cottage',               m:'Hacendado', kcal:98,  p:11.5, c:3.5,  g:4.3,  fib:0,
+                  nota:'11,7 g P/100 kcal: la mitad de densidad proteica que el queso batido (22,3). ' +
+                       'Protagonista del desayuno por preferencia, no por eficiencia. Verificar etiqueta.'},
   yogur_griego0: {n:'Yogur griego 0 %',            m:'Hacendado', kcal:57,  p:10,   c:3.6,  g:0.4,  fib:0},
   leche_desn:    {n:'Leche desnatada',             m:'Hacendado', kcal:33,  p:3.3,  c:4.8,  g:0.1,  fib:0},
   huevo:         {n:'Huevo fresco',                m:'—',         kcal:143, p:12.6, c:0.7,  g:9.5,  fib:0, ud:55},
   claras:        {n:'Claras pasteurizadas',        m:'Hacendado', kcal:48,  p:11,   c:0.7,  g:0.2,  fib:0},
   queso_havarti: {n:'Queso havarti en lonchas',    m:'Hacendado', kcal:370, p:24,   c:0,    g:30,   fib:0},
 
-  /* ── Carnes ── */
+  /* ── Carnes ──
+     PICADA DE PAVO Y DE TERNERA RETIRADAS. Verificado en Mercadona:
+     la de pavo no existe; la de ternera sale a 5,40 €/100 g de proteína y
+     las "picadas" son preparado de carne (90 % carne + agua, fibra de
+     guisante, maíz y sulfitos E-221). Su papel lo hacen los taquitos de cerdo. */
   muslo_pollo:   {n:'Muslo de pollo sin piel',     m:'—', kcal:130, p:20,   c:0, g:5.5, fib:0,
-                  nota:'Comprar con hueso: 2,29 €/100 g de proteína, la fuente más barata del plan.'},
+                  nota:'Comprar con hueso: 2,23 €/100 g de proteína (cuartos traseros), la más barata junto al lomo.'},
   pechuga_pollo: {n:'Pechuga de pollo',            m:'—', kcal:110, p:23,   c:0, g:1.8, fib:0},
-  pavo_picado:   {n:'Pavo picado',                 m:'—', kcal:120, p:22,   c:0, g:3,   fib:0},
-  ternera_5:     {n:'Ternera picada 5 % grasa',    m:'—', kcal:135, p:21,   c:0, g:5,   fib:0},
+  taquitos_cerdo:{n:'Taquitos de cerdo (magro)',   m:'Hacendado', kcal:135, p:21, c:0, g:5, fib:0,
+                  nota:'2,52 €/100 g de proteína. Si te cansas de ellos, el lomo en pieza cortado en dados ' +
+                       'es más barato (2,25 €) y menos grasa. Máximo 1 de los 2 tuppers de cada tanda.'},
   jamon_cocido:  {n:'Jamón cocido extra',          m:'Hacendado', kcal:105, p:19, c:1, g:2.5, fib:0},
 
   /* ── Pescados ── */
-  merluza:       {n:'Merluza congelada',           m:'Hacendado', kcal:72,  p:16, c:0, g:0.8, fib:0},
+  merluza:       {n:'Merluza / pescadilla congelada', m:'Hacendado', kcal:72, p:16, c:0, g:0.8, fib:0,
+                  nota:'CONGELADA: 3,28 €/100 g de proteína y 22,2 g P/100 kcal, de lo mejor del catálogo. ' +
+                       'Va solo en cenas (CB, CN, CP), nunca en tupper. Sácala del congelador por la mañana ' +
+                       'y descongélala en la nevera. Y SÉCALA con papel antes de cocinar: el agua que retiene ' +
+                       'es lo que arruina el pescado congelado.'},
   lubina:        {n:'Lubina',                      m:'—',         kcal:97,  p:18, c:0, g:2.5, fib:0},
   salmon:        {n:'Salmón',                      m:'—',         kcal:200, p:20, c:0, g:13,  fib:0,
                   nota:'Racionado por coste: máximo 1 vez por semana.'},
@@ -39,6 +52,9 @@ const FOODS = {
   pan_pita:      {n:'Pan de pita integral',        m:'Hacendado', kcal:270, p:9,   c:50, g:2,   fib:5},
   arroz:         {n:'Arroz',                       m:'Hacendado', kcal:350, p:7,   c:78, g:0.6, fib:1.4},
   pasta:         {n:'Pasta',                       m:'Hacendado', kcal:355, p:12,  c:71, g:1.5, fib:3},
+  pasta_integral:{n:'Pasta integral',              m:'Hacendado', kcal:350, p:13,  c:63, g:2.5, fib:8,
+                  nota:'8 g de fibra por 100 g frente a 3 de la normal. Sin avena en la dieta, es el cambio ' +
+                       'más rentable para sostener los 30-40 g de fibra diarios.'},
   patata:        {n:'Patata',                      m:'—',         kcal:77,  p:2,   c:17, g:0.1, fib:2.2},
   boniato:       {n:'Boniato',                     m:'—',         kcal:86,  p:1.6, c:20, g:0.1, fib:3},
   garbanzos_bote:{n:'Garbanzos cocidos, escurridos', m:'Hacendado', kcal:140, p:7.5, c:17, g:2.8, fib:7},
@@ -69,7 +85,9 @@ const FOODS = {
 
   /* ── Base asiática ── */
   salsa_soja:    {n:'Salsa de soja',                m:'Hacendado', kcal:60,  p:6,   c:5.6, g:0.1, fib:0},
-  leche_coco:    {n:'Leche de coco ligera',         m:'Hacendado', kcal:73,  p:0.8, c:2,   g:7,   fib:0},
+  /* LECHE DE COCO RETIRADA (decisión del usuario). El curry C4 va con nata_ligera,
+     que ya se compra para el risotto CK: un solo brik cubre los dos platos.
+     Leche evaporada y crema de soja quedan pendientes de verificar etiqueta y precio. */
   curry_polvo:   {n:'Curry en polvo',               m:'Hacendado', kcal:325, p:14,  c:25,  g:14,  fib:33},
   jengibre:      {n:'Jengibre fresco',              m:'—', kcal:80,  p:1.8, c:18,  g:0.8, fib:2},
   sesamo:        {n:'Semillas de sésamo',           m:'Hacendado', kcal:573, p:17,  c:23,  g:50,  fib:12},
@@ -95,7 +113,11 @@ const FOODS = {
   maiz_dulce:    {n:'Maíz dulce en conserva',       m:'Hacendado', kcal:86,  p:3.2, c:19,  g:1.2, fib:2.5},
 
   gambas:        {n:'Gambas peladas congeladas',    m:'Hacendado', kcal:85, p:18,  c:0.5, g:1,   fib:0,
-                  nota:'~5,50 €/100 g de proteína. Máximo 1-2 veces por semana, como el salmón.'},
+                  nota:'DENSIDAD BUENA: 21,2 g P/100 kcal, por encima del muslo de pollo (15,4) y del lomo ' +
+                       '(16,9). PRECIO SIN VERIFICAR: no está en la tabla de Mercadona del 19/08/2026. ' +
+                       'La cifra de ~5,50 €/100 g de proteína que había aquí era una estimación, no un dato. ' +
+                       'Si se confirma, sería la segunda proteína más cara del catálogo tras el atún (5,80) ' +
+                       'y hay que limitarla a 1 tanda por rotación. COMPRUÉBALO EN TIENDA.'},
   guisantes:     {n:'Guisantes congelados',         m:'Hacendado', kcal:81, p:5.4, c:14,  g:0.4, fib:5},
   verdura_fresca:{n:'Verdura fresca de salteado (calabacín, zanahoria, cebolla, pimiento)',
                   m:'—', kcal:30, p:1.0, c:6.7, g:0.2, fib:1.8,
@@ -126,21 +148,27 @@ const FOOD_WARN = {tomate_natural:'Preferencia: tomate natural muy poco o nada.'
    las siete caben dentro o al borde de la tolerancia del ±10 %. */
 const SAUCES = {
 
-  tonkatsu:{n:'Salsa tonkatsu', cocina:'Japonesa', raciones:4,
-    it:[['tomate_frito',60],['salsa_soja',20],['salsa_worcester',15],['miel',12]],
-    para:['C7','C12','C3','C14'],
+  /* SIN MIEL. Reformulada: el tomate frito sube de 60 a 70 g y el dulzor lo
+     pone la Worcestershire, que trae 19 g de HC por 100 g. Baja de 28 a 20 kcal
+     por ración y pierde 0,3 g de proteína. Funciona igual en el katsu. */
+  tonkatsu:{n:'Salsa tonkatsu', cocina:'Japonesa', raciones:4, sin_miel:true,
+    it:[['tomate_frito',70],['salsa_soja',20],['salsa_worcester',15]],
+    para:['C3','C7'],
     conserva:'2 semanas en nevera, en tarro cerrado',
     prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Varillas o tenedor','Tarro con tapa'],
       pasos:[
-        'Mezcla en el bol el tomate frito, la soja, la Worcestershire y la miel.',
-        'Bate hasta que quede homogéneo, sin grumos de miel.',
-        'Prueba: si te sabe muy dulce, un chorro más de Worcestershire; si muy ácido, algo más de miel.',
+        'Mezcla en el bol el tomate frito, la soja y la Worcestershire.',
+        'Bate hasta que quede homogéneo.',
+        'Prueba: si te sabe plana, un chorro más de Worcestershire, que es de donde sale el dulzor ahora que no hay miel. Si muy fuerte, más tomate frito.',
         'Al tarro. No necesita cocción.'],
-      tip:'La salsa oficial del katsu y la más barata del catálogo: 28 kcal por ración.'}},
+      tip:'La versión sin miel necesita la Worcestershire completa: es el único ingrediente dulce que queda. No la recortes.'}},
 
-  teriyaki:{n:'Salsa teriyaki', cocina:'Japonesa', raciones:4,
+  /* CONSERVA LA MIEL. Es soja + dulce + espesante: sin el dulce no hay teriyaki,
+     y en §7 no existe azúcar, mirin ni sirope que la sustituya. Si la miel sale
+     también de aquí, esta salsa y la asiática desaparecen del catálogo. */
+  teriyaki:{n:'Salsa teriyaki', cocina:'Japonesa', raciones:4, con_miel:true,
     it:[['salsa_soja',40],['miel',24],['jengibre',8],['maicena',4]],
-    para:['C7','C14','C15','CH','C3','C1'],
+    para:['C3','C7','C8','CH'],
     conserva:'1 semana en nevera. Espesa en frío: templa antes de usar',
     prep:{t:'8 min', dif:'Fácil', ut:['Cazo pequeño','Rallador fino','Cuchara'],
       pasos:[
@@ -151,9 +179,10 @@ const SAUCES = {
         'Fuera del fuego. Espesará más al enfriarse.'],
       tip:'La maicena siempre se disuelve en agua fría antes de entrar. En polvo sobre líquido caliente hace grumos que ya no se van.'}},
 
-  asiatica:{n:'Salsa asiática de miel y ajo', cocina:'Asiática', raciones:4,
+  /* CONSERVA LA MIEL: lo dice el nombre. Muere si la miel sale del todo. */
+  asiatica:{n:'Salsa asiática de miel y ajo', cocina:'Asiática', raciones:4, con_miel:true,
     it:[['salsa_soja',45],['miel',25],['ajo',10],['maicena',5]],
-    para:['C7','C9','C14','C15','C16','CH','C1','C3'],
+    para:['C3','C7','C8','CH','A4'],
     conserva:'1 semana en nevera',
     prep:{t:'8 min', dif:'Fácil', ut:['Cazo pequeño','Prensa de ajo','Cuchara'],
       pasos:[
@@ -166,7 +195,7 @@ const SAUCES = {
 
   yogur_ajo:{n:'Salsa de yogur y ajo', cocina:'Mediterránea', raciones:4,
     it:[['yogur_griego0',160],['ajo',6],['limon',10],['aove',5]],
-    para:['C7','C12','C14','CE','C3','CB','CD'],
+    para:['C3','C7','C10','CB','CE'],
     conserva:'4 días en nevera',
     prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Prensa de ajo o rallador','Cuchara'],
       pasos:[
@@ -178,7 +207,7 @@ const SAUCES = {
 
   argelina:{n:'Salsa argelina ligera', cocina:'Magrebí', raciones:4,
     it:[['yogur_griego0',120],['tomate_frito',60],['ajo',4],['aove',8]],
-    para:['C7','C14','CE','C3','C12'],
+    para:['C3','C7','C8','CE'],
     conserva:'4 días en nevera',
     prep:{t:'5 min', dif:'Muy fácil', ut:['Bol','Prensa de ajo','Varillas'],
       pasos:[
@@ -187,21 +216,23 @@ const SAUCES = {
         'Bate bien y reposa 20 minutos.'],
       tip:'Base de yogur en lugar de mayonesa. La original tiene el triple de calorías; esta te deja el sabor por 49 kcal.'}},
 
-  soja_sesamo:{n:'Aliño de soja y sésamo', cocina:'Asiática', raciones:4,
-    it:[['salsa_soja',40],['aceite_sesamo',12],['vinagre',15],['sesamo',8],['miel',6]],
-    para:['C15','C16','CH','C14'],
+  /* SIN MIEL. Sobrevive sin retocar nada más: los 6 g de miel eran 19 kcal
+     de 200. Queda más punzante, que en un aliño de vinagre no es un problema. */
+  soja_sesamo:{n:'Aliño de soja y sésamo', cocina:'Asiática', raciones:4, sin_miel:true,
+    it:[['salsa_soja',40],['aceite_sesamo',12],['vinagre',15],['sesamo',8]],
+    para:['C8','CH','A4'],
     conserva:'2 semanas en nevera. Agitar antes de usar',
     prep:{t:'5 min', dif:'Muy fácil', ut:['Tarro con tapa','Sartén pequeña'],
       pasos:[
         'Tuesta el sésamo en la sartén sin aceite, 2 minutos a fuego medio removiendo. Cuando salte y huela, fuera.',
         'Todos los ingredientes al tarro, tapa y agita 20 segundos.',
         'Se separa al reposar: agita antes de cada uso.'],
-      tip:'El aceite de sésamo es aromático, no de cocinar: en frío y al final. Calentado pierde todo el aroma.'}},
+      tip:'Sin la miel queda más ácido. Si te resulta agresivo, baja el vinagre de 15 a 10 g antes de pensar en volver a endulzarlo.'}},
 
   espanola:{n:'Salsa española', cocina:'Española', raciones:6,
     it:[['cebolla',150],['pimiento_verde',150],['zanahoria',160],['vino_blanco',150],
         ['harina',10],['caldo_pollo',500],['aove',12]],
-    para:['C1','C3','C12','CB','CD','CE','CH'],
+    para:['C1','C7','C9','C10','CA','CB','CH'],
     conserva:'5 días en nevera · 3 meses congelada en porciones',
     prep:{t:'45 min', dif:'Media', ut:['Cazuela','Batidora de mano','Tabla y cuchillo','Colador (opcional)'],
       pasos:[
@@ -217,69 +248,94 @@ const SAUCES = {
 };
 
 /* ═══════════════════ COMIDAS Y EQUIVALENCIAS ═══════════════════
-   Cada franja tiene una opción base (la del plan) y alternativas
-   con macros equivalentes. it = [idAlimento, gramos].
-   La app calcula los macros de cada opción y muestra la desviación
-   frente a la base, para que cambiar de plato no rompa el día. */
+   Cada franja tiene un objetivo de macros (obj) y un catálogo de platos.
+   it  = [idAlimento, gramos] · gramaje EN CRUDO para carnes, pescados,
+         arroz y pasta.
+   pro = claves de proteína del plato. Regla §8.2: el almuerzo y la comida
+         del mismo día NO pueden compartir clave. Muslo y pechuga son
+         claves distintas; taquitos y lomo también.
+   min = minutos de elaboración (solo cenas: entre semana el techo son 30).
+   leg = cuenta como ración de legumbre.
+
+   REVISIÓN 20/08/2026 — reescrito por completo. Cambios:
+   · Skyr fuera de todo el catálogo.
+   · Desayunos simplificados a 4-5 ingredientes, con el cottage como
+     lácteo protagonista en 4 de los 5 y yogur griego en el alterno.
+   · Miel fuera de los tres pre-entrenos (compensada con pan).
+   · Curry con nata ligera en lugar de leche de coco.
+   · Objetivos por franja recalibrados: la tabla antigua sumaba 2.565 kcal
+     y 172 g de proteína frente a un objetivo de 2.548 y 162. Ese exceso de
+     10 g de proteína, más el que arrastraba cada plato, ponía los días
+     reales en ~182 g y era la causa del volumen de los tuppers.
+   · Volúmenes recortados: la media de las comidas baja de ~523 a ~486 g
+     de plato cocinado, y los tres peores (C1, C2, C9) entre 62 y 82 g. */
 
 const MEALS = {
 
   /* ─────── DESAYUNO · 07:00 ─────── */
-  desayuno:{hora:'07:00', n:'Desayuno', obj:{kcal:447,p:33,c:65,g:11},
-    nota:'3 minutos, sin cocinar. Se ensambla. Existe por aritmética: 160 g de proteína en 4 comidas exigiría 40 g por comida con dos tuppers de trabajo.',
+  desayuno:{hora:'07:00', n:'Desayuno', obj:{kcal:500,p:33,c:70,g:12},
+    nota:'Simple y sin báscula de precisión: un lácteo, pan, fruta y nueces. Solo D3 se cocina. ' +
+         'El cottage no puede ser la única proteína del desayuno: con 11,7 g P/100 kcal harían falta ' +
+         '230 g para 33 g de proteína y ya no cabrían los 70 g de hidratos. Va siempre con un compañero magro.',
     op:[
-      {id:'D1', n:'Queso batido, plátano y pan con miel', base:true,
-       it:[['queso_batido',250],['platano',120],['pan_integral',40],['miel',10],['nueces',14]]},
-      {id:'D2', n:'Skyr con pan de molde y plátano',
-       it:[['skyr',250],['pan_molde_int',42],['miel',8],['nueces',12],['platano',120]]},
-      {id:'D3', n:'Tortilla de huevo y claras con pan',
-       it:[['huevo',110],['claras',100],['pan_integral',70],['naranja',200]],
-       nota:'Requiere 4 min de sartén. Única opción del desayuno que se cocina.'},
-      {id:'D4', n:'Yogur griego con pan, miel y plátano',
-       it:[['yogur_griego0',300],['pan_integral',40],['miel',12],['platano',120],['nueces',10]]}
+      {id:'D1', n:'Cottage y queso batido con plátano', base:true,
+       it:[['queso_cottage',130],['queso_batido',90],['pan_integral',75],['platano',120],['nueces',8]]},
+      {id:'D2', n:'Yogur griego con manzana',
+       it:[['yogur_griego0',220],['pan_integral',80],['manzana',180],['nueces',14]],
+       nota:'El día alterno, sin cottage. Es el desayuno que empareja con las cenas CL y CM, que llevan 50 g.'},
+      {id:'D3', n:'Revuelto de claras con cottage',
+       it:[['claras',110],['queso_cottage',130],['pan_integral',85],['naranja',200],['aove',4]],
+       nota:'El salado. 6 min de sartén: las claras a fuego medio y el cottage fuera del fuego, al final.'},
+      {id:'D4', n:'Sándwich de jamón y cottage',
+       it:[['pan_molde_int',90],['queso_cottage',120],['jamon_cocido',40],['platano',120],['nueces',6]]},
+      {id:'D5', n:'Cottage con huevo y pan',
+       it:[['pan_integral',90],['huevo',55],['queso_cottage',140],['platano',100]],
+       nota:'El más simple del catálogo: 4 ingredientes. La grasa del cottage sustituye a las nueces.'}
     ]},
 
   /* ─────── ALMUERZO · 10:45 · TUPPER ─────── */
-  almuerzo:{hora:'10:45', n:'Almuerzo (tupper)', obj:{kcal:499,p:32,c:56,g:16},
-    nota:'Sustituye al bocadillo de fiambre de pavo: 32 g de proteína en lugar de 12, y más barato. Mismo formato para llevar al trabajo.',
+  almuerzo:{hora:'10:45', n:'Almuerzo (tupper)', obj:{kcal:505,p:32,c:60,g:16},
+    nota:'Tupper, se calienta en microondas o se come templado. SIN FRUTA (§4). ' +
+         'Aguanta 3 días en nevera: es el mismo plato los tres días de cada tanda.',
     op:[
-      {id:'A1', n:'Bocadillo de pollo a la plancha', base:true,
-       it:[['pan_integral',70],['muslo_pollo',120],['pepino',40],['aove',8],['naranja',200]]},
-      {id:'A2', n:'Bocadillo de atún y pimiento asado',
-       it:[['pan_integral',70],['atun_natural',100],['pimiento_asado',40],['aove',12],['manzana',180]]},
-      {id:'A3', n:'Bocadillo de huevo cocido y claras',
-       it:[['pan_integral',55],['huevo',165],['claras',70],['pepino',40],['naranja',200]]},
-      {id:'A4', n:'Sándwich de jamón cocido y havarti',
-       it:[['pan_molde_int',84],['jamon_cocido',120],['queso_havarti',15],['pepino',40],['manzana',180]],
-       nota:'Versión corregida de tu sándwich de fin de semana: 120 g de jamón en lugar de 2 lonchas.'},
-      {id:'A5', n:'Bocadillo de pollo teriyaki',
-       it:[['pan_integral',70],['muslo_pollo',110],['salsa_soja',10],['miel',5],
-           ['pepino',30],['aove',5],['manzana',180]],
-       nota:'Marina el pollo la noche antes con la soja y la miel: se hace en 6 min a la plancha.'},
-      {id:'A6', n:'Sándwich caprese con pollo',
-       it:[['pan_molde_int',84],['pechuga_pollo',70],['mozzarella',40],['pesto',8],['naranja',200]],
-       nota:'En frío. Se monta en 2 minutos por la mañana.'}
+      {id:'A1', n:'Arroz con taquitos de cerdo', base:true, pro:['cerdo_taquitos'],
+       it:[['arroz',65],['taquitos_cerdo',120],['verdura_cong',100],['tomate_frito',30],['aove',8]]},
+      {id:'A2', n:'Pasta integral con lomo de cerdo', pro:['cerdo_lomo'],
+       it:[['pasta_integral',70],['lomo_cerdo',90],['tomate_triturado',100],['cebolla',40],
+           ['aove',10],['parmesano',8]],
+       nota:'Pasta al dente MENOS 1 minuto: se termina de hacer al recalentar.'},
+      {id:'A3', n:'Patata con pechuga y huevo', pro:['pollo_pechuga','huevo'],
+       it:[['patata',250],['pechuga_pollo',80],['huevo',55],['guisantes',60],['aove',10]]},
+      {id:'A4', n:'Noodles con cerdo y verdura', pro:['cerdo_taquitos'],
+       it:[['noodles',60],['taquitos_cerdo',100],['verdura_cong',120],['salsa_soja',12],
+           ['aove',10],['sesamo',5]]},
+      {id:'A5', n:'Arroz frío con gambas y maíz', pro:['gambas'], frio:true,
+       it:[['arroz',60],['gambas',130],['guisantes',70],['maiz_dulce',40],
+           ['limon',10],['aove',13]],
+       nota:'SE COME TEMPLADO O FRÍO, NO SE CALIENTA. Es la razón de que sea un bowl y no un ' +
+            'salteado: la gamba recalentada en microondas se vuelve goma. Cuécelas 90 segundos, ' +
+            'córtalas del calor con agua fría y móntalas en frío sobre el arroz.'},
+      {id:'A6', n:'Boniato con muslo de pollo', pro:['pollo_muslo'],
+       it:[['boniato',250],['muslo_pollo',130],['espinacas',100],['aove',9]]},
+      {id:'AR', n:'Almuerzo relajado del domingo', pro:['cerdo_jamon'], dom:true,
+       it:[['pan_integral',40],['jamon_cocido',50],['queso_batido',100],['nueces',6]],
+       nota:'Solo domingos. Ligero a propósito: deja hueco para la comida libre. Sin fruta, como el resto.'}
     ]},
 
   /* ─────── COMIDA · 14:00 · TUPPER ─────── */
-  comida:{hora:'14:00', n:'Comida (tupper)', obj:{kcal:645,p:41,c:63,g:23},
+  comida:{hora:'14:00', n:'Comida (tupper)', obj:{kcal:600,p:40,c:64,g:21},
+    nota:'Tupper de la tanda: el mismo plato los tres días. La pasta, al dente menos 1 minuto.',
     op:[
-      {id:'C1', n:'Arroz con muslo de pollo y verdura', base:true,
-       it:[['arroz',60],['muslo_pollo',150],['verdura_cong',250],['tomate_frito',40],['aove',12]]},
-      {id:'C2', n:'Pasta con ternera picada',
-       it:[['pasta',60],['ternera_5',150],['verdura_cong',250],['tomate_frito',40],['aove',10]]},
-      {id:'C3', n:'Patata con pechuga de pollo',
-       it:[['patata',350],['pechuga_pollo',140],['verdura_cong',250],['aove',14]]},
-      {id:'C4', n:'Arroz con merluza',
-       it:[['arroz',55],['merluza',200],['verdura_cong',250],['aove',16],['nueces',6]]},
-      {id:'C5', n:'Garbanzos con pollo',
-       it:[['garbanzos_bote',220],['muslo_pollo',100],['verdura_cong',200],['aove',8],['pan_integral',20]],
-       nota:'Cuenta como una de las 2 raciones semanales de legumbre obligatorias.'},
-      {id:'C6', n:'Pasta con pavo picado',
-       it:[['pasta',60],['pavo_picado',140],['verdura_cong',250],['tomate_frito',40],['aove',12]]},
-            {id:'C7', n:'Pollo katsu con arroz',
-       it:[['pechuga_pollo',130],['panko',25],['huevo',25],['harina',8],
-           ['arroz',50],['verdura_cong',150],['aove',14]],
+      {id:'C1', n:'Arroz con pechuga y verdura', base:true, pro:['pollo_pechuga'],
+       it:[['arroz',70],['pechuga_pollo',130],['verdura_cong',180],['tomate_frito',30],['aove',13]]},
+
+      {id:'C2', n:'Pasta integral con muslo de pollo', pro:['pollo_muslo'],
+       it:[['pasta_integral',70],['muslo_pollo',130],['verdura_cong',170],['tomate_frito',35],['aove',10]],
+       nota:'La pasta integral aquí no es capricho: sube el plato a 10,7 g de fibra, el segundo más alto del catálogo.'},
+
+      {id:'C3', n:'Pollo katsu con arroz', pro:['pollo_pechuga'],
+       it:[['pechuga_pollo',115],['panko',22],['huevo',25],['harina',7],
+           ['arroz',50],['verdura_cong',150],['aove',11]],
        nota:'Al horno o freidora de aire, no frito: mismo panko crujiente con una fracción del aceite.',
        prep:{t:'30 min', dif:'Media',
          ut:['Horno o freidora de aire','Bandeja con rejilla','3 platos hondos','Mazo de cocina o rodillo','Cazo'],
@@ -294,40 +350,11 @@ const MEALS = {
            'Corta el pollo en tiras de 2 cm antes de servir.'],
          tip:'La rejilla no es opcional. Sobre la bandeja lisa, el panko de la cara inferior se humedece y pierdes la mitad del crujiente.'}},
 
-      {id:'C8', n:'Ternera con soja y miel y arroz',
-       it:[['ternera_5',150],['salsa_soja',20],['miel',12],['arroz',60],
-           ['cebolla',50],['pimiento_verde',80],['zanahoria',50],['aove',12],['sesamo',5]],
-       prep:{t:'25 min', dif:'Fácil',
-         ut:['Sartén amplia o wok','Cazo','Tabla y cuchillo','Bol pequeño'],
-         pasos:[
-           'Pon el arroz a cocer (60 g en crudo, 15 min).',
-           'Corta la cebolla en juliana, el pimiento en tiras y la zanahoria en bastones finos o rodajas al sesgo.',
-           'Mezcla en el bol la salsa de soja con la miel. Reserva.',
-           'Sartén a fuego fuerte con la mitad del aceite. Echa la ternera y NO la toques durante 90 segundos: deja que se dore. Después deshaz los grumos y termina de hacerla. Retírala a un plato.',
-           'Con el resto del aceite y la sartén todavía fuerte: zanahoria 2 min, añade cebolla 2 min, añade pimiento 2 min. Que queden al dente.',
-           'Devuelve la carne, BAJA a fuego medio y añade la mezcla de soja y miel. Remueve 60-90 segundos hasta que espese y lo glasee todo.',
-           'Fuera del fuego, sésamo por encima. Sirve sobre el arroz.'],
-         tip:'La soja y la miel entran al final y a fuego medio. Si las echas antes o con la sartén al máximo, la miel se quema y amarga el plato entero.'}},
-
-      {id:'C9', n:'Pollo teriyaki con noodles',
-       it:[['muslo_pollo',150],['salsa_soja',20],['miel',10],['noodles',55],
-           ['verdura_cong',200],['jengibre',5],['aove',10],['sesamo',5]],
-       prep:{t:'25 min', dif:'Fácil',
-         ut:['Sartén amplia o wok','Olla','Rallador fino','Bol pequeño'],
-         pasos:[
-           'Ralla el jengibre y mézclalo en el bol con la soja y la miel.',
-           'Corta el muslo en trozos de 3 cm.',
-           'Sartén a fuego fuerte con el aceite. Dora el pollo 5-6 min sin moverlo demasiado, hasta que tenga costra. Retíralo.',
-           'Echa la verdura congelada directamente, sin descongelar, 5-6 min a fuego fuerte y sin tapar, para que evapore el agua en lugar de cocerse.',
-           'Aparta la verdura a un lado de la sartén y vierte la mezcla de soja, miel y jengibre en el hueco. Deja que borbotee 1-2 min hasta que se convierta en un jarabe.',
-           'Devuelve el pollo y mézclalo todo con la salsa 1 minuto.',
-           'Cuece los noodles según el paquete (3-4 min), escúrrelos y mézclalos en la sartén.',
-           'Sésamo fuera del fuego.'],
-         tip:'La verdura congelada suelta mucha agua. Fuego fuerte y sin tapar, o acabas cociéndola y queda blanda.'}},
-
-      {id:'C10', n:'Curry de pollo con arroz',
-       it:[['muslo_pollo',140],['leche_coco',80],['curry_polvo',8],['arroz',60],
-           ['cebolla',60],['zanahoria',60],['espinacas',80],['aove',8]],
+      {id:'C4', n:'Curry de pollo con arroz', pro:['pollo_muslo'],
+       it:[['muslo_pollo',145],['nata_ligera',45],['curry_polvo',8],['arroz',60],
+           ['cebolla',50],['zanahoria',50],['espinacas',80],['aove',5]],
+       nota:'Va con NATA LIGERA, no con leche de coco. Un solo brik cubre este plato y el risotto CK. ' +
+            'El aceite baja de 8 a 5 g porque la nata ya aporta 6,75 g de grasa.',
        prep:{t:'30 min', dif:'Fácil',
          ut:['Sartén honda o cazuela','Cazo','Tabla y cuchillo'],
          pasos:[
@@ -336,29 +363,37 @@ const MEALS = {
            'Aceite a fuego medio. Añade el curry en polvo y tuéstalo 30 segundos removiendo, hasta que huela. Este paso cambia el plato por completo.',
            'Añade la cebolla y pochala 4-5 min. Después la zanahoria, 3 min más.',
            'Sube el fuego, añade el pollo y séllalo 4 min.',
-           'Baja a fuego medio-bajo, añade la leche de coco y deja reducir 8-10 min destapado, removiendo de vez en cuando.',
+           'BAJA a fuego medio-bajo y añade la nata. A diferencia de la leche de coco, la nata se corta si hierve fuerte: que solo tiemble, 6-8 min destapado.',
            'Los últimos 2 minutos, las espinacas congeladas, removiendo hasta que se integren.',
-           'Sal al final, nunca antes: la leche de coco reduce y concentra.'],
-         tip:'Tostar el curry en el aceite antes de añadir nada más. Echado en seco o al final sabe a polvo; tostado sabe a curry.'}},
+           'Sal al final. Si queda espeso, un par de cucharadas de agua caliente.'],
+         tip:'Tostar el curry en el aceite antes de añadir nada más. Echado en seco o al final sabe a polvo; tostado sabe a curry. ' +
+             'Y la nata a fuego bajo: es lo único que cambia respecto a la versión con coco.'}},
 
-      {id:'C11', n:'Pasta a la boloñesa',
-       it:[['pasta',60],['ternera_5',150],['tomate_triturado',150],['cebolla',50],
-           ['zanahoria',50],['aove',10],['parmesano',10]],
+      {id:'C5', n:'Garbanzos con pollo', pro:['pollo_muslo','legumbre'], leg:true,
+       it:[['garbanzos_bote',200],['muslo_pollo',90],['verdura_cong',150],['pan_integral',25],['aove',8]],
+       nota:'Cuenta como una de las 2 raciones semanales de legumbre obligatorias. El plato con más fibra del catálogo.'},
+
+      {id:'C6', n:'Boloñesa de cerdo con pasta integral', pro:['cerdo_taquitos'],
+       it:[['pasta_integral',65],['taquitos_cerdo',125],['tomate_triturado',130],['cebolla',45],
+           ['zanahoria',45],['aove',10],['parmesano',8]],
        prep:{t:'35 min', dif:'Fácil',
          ut:['Sartén honda o cazuela','Olla','Rallador','Tabla y cuchillo'],
          pasos:[
            'Ralla la zanahoria y pica la cebolla muy fina.',
+           'Pica los taquitos de cerdo a cuchillo, en trozos de medio centímetro. No hace falta picadora: quedan mejor con algo de mordida.',
            'Aceite a fuego medio. Pocha cebolla y zanahoria 6-8 min, hasta que la cebolla esté transparente. No lo aceleres: aquí se construye el sabor.',
-           'Sube el fuego, añade la ternera y dórala sin tocarla 2 minutos. Luego deshaz los grumos.',
+           'Sube el fuego, añade el cerdo y dóralo sin tocarlo 2 minutos. Luego remueve y termina de hacerlo.',
            'Añade el tomate triturado, sal y pimienta. Fuego mínimo, 15-20 min destapado, removiendo de vez en cuando.',
-           'Cuece la pasta 1 minuto menos de lo que diga el paquete. Reserva un vaso del agua de cocción ANTES de escurrir.',
-           'Mezcla la pasta con la salsa en la sartén a fuego medio, con 2-3 cucharadas del agua de cocción. Un minuto removiendo.',
+           'Cuece la pasta integral 1 minuto menos de lo que diga el paquete. Reserva un vaso del agua de cocción ANTES de escurrir.',
+           'Mezcla la pasta con la salsa a fuego medio, con 2-3 cucharadas del agua de cocción. Un minuto removiendo.',
            'Parmesano rallado fuera del fuego.'],
-         tip:'La zanahoria rallada en el sofrito es lo que da el dulzor. Sin ella la boloñesa sabe ácida y la gente lo compensa con azúcar, que aquí no queremos.'}},
+         tip:'La zanahoria rallada en el sofrito es lo que da el dulzor. Sin ella la boloñesa sabe ácida y se compensa con azúcar, que aquí no queremos.'}},
 
-      {id:'C12', n:'Pollo a la milanesa con pasta',
-       it:[['pechuga_pollo',120],['panko',25],['huevo',25],['pasta',45],
-           ['tomate_triturado',100],['ensalada',100],['aove',14],['parmesano',8]],
+      {id:'C7', n:'Pollo a la milanesa con pasta', pro:['pollo_pechuga'],
+       it:[['pechuga_pollo',100],['panko',22],['huevo',25],['pasta',45],
+           ['tomate_triturado',120],['verdura_cong',120],['aove',11],['parmesano',8]],
+       nota:'La ensalada de la versión anterior está fuera: 100 g de hoja no aguantan 3 días en tupper ' +
+            'y menos recalentada. La sustituye verdura congelada, que sí.',
        prep:{t:'30 min', dif:'Media',
          ut:['Horno o freidora de aire','Bandeja con rejilla','2 platos hondos','Mazo o rodillo','Olla','Sartén pequeña'],
          pasos:[
@@ -367,105 +402,142 @@ const MEALS = {
            'Bate el huevo en un plato. En otro, mezcla el panko con la MITAD del parmesano rallado y una pizca de sal.',
            'Pasa el pollo por huevo y luego por la mezcla de panko, presionando bien por las dos caras.',
            'Sobre la rejilla, pincela con la mitad del aceite. 9 min, vuelta, resto del aceite, 9 min más.',
-           'Cuece la pasta. Aparte, calienta el tomate triturado 5 min con sal y orégano.',
-           'Mezcla pasta y tomate. Sirve con el pollo en tiras, la ensalada aliñada y el resto del parmesano.'],
+           'Cuece la pasta. Aparte, calienta el tomate triturado 5 min con sal y orégano, y saltea la verdura congelada 5-6 min a fuego fuerte sin tapar.',
+           'Mezcla pasta y tomate. Sirve con el pollo en tiras, la verdura y el resto del parmesano.'],
          tip:'El parmesano dentro del panko es lo que separa una milanesa de un empanado soso. Solo la mitad ahí: el resto va al plato.'}},
 
-      {id:'C13', n:'Pasta al pesto con pollo',
-       it:[['pasta',70],['muslo_pollo',140],['pesto',20],['calabacin',100],
-           ['parmesano',10],['aove',5]],
-       prep:{t:'25 min', dif:'Fácil',
-         ut:['Sartén amplia','Olla','Tabla y cuchillo','Rallador'],
-         pasos:[
-           'Corta el muslo en tiras y el calabacín en medias lunas de medio centímetro.',
-           'Pon la pasta a cocer.',
-           'Sartén a fuego fuerte con el aceite. Dora el pollo 5-6 min. Retíralo.',
-           'En la misma sartén, saltea el calabacín 4-5 min a fuego fuerte: dorado por fuera y firme por dentro.',
-           'Escurre la pasta reservando medio vaso del agua de cocción.',
-           'APAGA EL FUEGO. Añade pasta y pollo a la sartén, el pesto y 3-4 cucharadas del agua de cocción. Remueve hasta que quede una crema que envuelva la pasta.',
-           'Parmesano por encima.'],
-         tip:'El pesto no se cocina. Si lo calientas, la albahaca se oxida, amarga y pierde el color. Fuego apagado y el agua de cocción para emulsionarlo.'}},
-
-      {id:'C14', n:'Bowl de pollo, maíz y alubias',
-       it:[['arroz',55],['pechuga_pollo',130],['maiz_dulce',60],['pimiento_verde',80],
-           ['cebolla',40],['alubias_bote',80],['aove',14]],
-       prep:{t:'25 min', dif:'Fácil',
-         ut:['Sartén','Cazo','Colador','Tabla y cuchillo'],
-         pasos:[
-           'Arroz a cocer. Escurre y enjuaga las alubias y el maíz.',
-           'Pollo en dados de 2 cm, pimiento en tiras, cebolla en juliana fina.',
-           'Sartén fuerte con la mitad del aceite. Sella el pollo 5-6 min con sal, pimienta y una pizca de pimentón. Retíralo.',
-           'Con el resto del aceite: cebolla 2 min, pimiento 3 min. Que queden crujientes.',
-           'Maíz y alubias solo 1-2 minutos, lo justo para templarlos. Las alubias ya están cocidas y se deshacen enseguida.',
-           'Monta el tupper por capas: arroz abajo, verdura y legumbre en medio, pollo arriba.'],
-         tip:'Se come frío o templado, así que es el mejor plato para llevar. Monta por capas y no lo mezcles: aguanta mucho mejor.'}},
-
-      {id:'C15', n:'Arroz frito con gambas y huevo',
-       it:[['arroz',60],['gambas',150],['huevo',55],['guisantes',60],['zanahoria',50],
-           ['cebolla',40],['salsa_soja',15],['aove',10],['sesamo',4]],
+      {id:'C8', n:'Arroz frito con pollo y huevo', pro:['pollo_pechuga','huevo'],
+       it:[['arroz',60],['pechuga_pollo',105],['huevo',55],['guisantes',60],['zanahoria',45],
+           ['salsa_soja',15],['aove',11],['sesamo',4]],
        prep:{t:'20 min · requiere arroz del día anterior', dif:'Media',
-         ut:['Wok o sartén grande','Espátula','Bol pequeño','Tabla y cuchillo','Papel de cocina'],
+         ut:['Wok o sartén grande','Espátula','Bol pequeño','Tabla y cuchillo'],
          pasos:[
            'IDEAL: arroz cocido el día anterior y guardado en nevera. Si lo haces al momento, cuécelo, extiéndelo en un plato y déjalo enfriar 20 min.',
-           'Zanahoria en dados muy pequeños, cebolla picada fina. Seca las gambas con papel de cocina.',
+           'Zanahoria en dados muy pequeños. Pechuga en dados de 1,5 cm.',
            'Bate el huevo. Wok a fuego fuerte con un poco del aceite, cuájalo removiendo, sácalo y resérvalo.',
-           'Más aceite, fuego máximo. Gambas 90 segundos por cada lado, no más. Fuera.',
-           'Resto del aceite: zanahoria 2 min, cebolla 2 min, guisantes 2 min.',
+           'Más aceite, fuego máximo. Pollo 4-5 min hasta que dore, con sal y pimienta. Fuera.',
+           'Resto del aceite: zanahoria 2 min, guisantes 2 min.',
            'Añade el arroz frío y aplástalo contra el fondo con la espátula, dejándolo quieto 30 segundos entre removidas. Eso es lo que le da el punto salteado.',
-           'Devuelve huevo y gambas, añade la soja por el borde del wok y remueve todo 1 minuto.',
+           'Devuelve huevo y pollo, añade la soja por el borde del wok y remueve todo 1 minuto.',
            'Sésamo fuera del fuego.'],
          tip:'Arroz del día anterior, sin excepción. El recién hecho tiene demasiada humedad y almidón: se empasta y sale un arroz con cosas, no un arroz frito.'}},
 
-      {id:'C16', n:'Yakisoba de gambas',
-       it:[['noodles',60],['gambas',160],['verdura_cong',200],['pimiento_verde',80],
-           ['salsa_soja',18],['jengibre',5],['aove',16],['sesamo',5]],
-       prep:{t:'20 min', dif:'Fácil',
-         ut:['Wok o sartén grande','Olla','Rallador fino','Papel de cocina'],
-         pasos:[
-           'Seca bien las gambas con papel de cocina. El agua es lo que impide que se doren.',
-           'Ralla el jengibre. Corta el pimiento en tiras finas.',
-           'Pon agua a hervir para los noodles, pero no los cuezas todavía.',
-           'Wok a fuego máximo con un tercio del aceite. Gambas 90 segundos por lado y fuera: se terminarán al final.',
-           'Más aceite. Verdura congelada 5-6 min a fuego fuerte sin tapar. Añade el pimiento 2 min.',
-           'Ahora sí, cuece los noodles (3-4 min) y escúrrelos.',
-           'Todo al wok: noodles, gambas, jengibre y la soja vertida por el borde. Remueve 1 minuto a fuego fuerte.',
-           'Sésamo al servir.'],
-         tip:'Las gambas se hacen en 3 minutos en total. Si las dejas con el resto desde el principio salen gomosas. Entran, salen, y vuelven al final.'}}
+      {id:'C9', n:'Lomo de cerdo con patata y champiñones', pro:['cerdo_lomo'],
+       it:[['lomo_cerdo',140],['patata',260],['champinones',120],['cebolla',40],
+           ['aove',13],['pan_integral',20]],
+       nota:'El pan va aparte, para mojar. La patata puede venir ya cocida de la tanda.'},
+
+      {id:'C10', n:'Muslo de pollo al horno con boniato', pro:['pollo_muslo'],
+       it:[['muslo_pollo',150],['boniato',260],['verdura_cong',150],['aove',10]],
+       nota:'Sustituye a la merluza con arroz: el pescado congelado se ha ido entero a las cenas. ' +
+            'Es el tupper con más fibra del catálogo (12,3 g) por el boniato. Todo en la misma bandeja, ' +
+            '200 °C, 35-40 min.'},
+
+      {id:'CLIBRE', n:'Comida libre del domingo', libre:true, techo:900, dom:true, pro:[],
+       it:[],
+       nota:'Solo domingos y ESTABA EN EL PLAN: no cuenta como incumplimiento. Techo de 900 kcal. ' +
+            'Apunta ~42 g de proteína dentro de ella (un segundo a la plancha lo cubre) o el día ' +
+            'se queda corto en el único macro que no se puede fallar. Regístrala con "Registro libre".'}
     ]},
 
   /* ─────── PRE-ENTRENO · 17:00 ─────── */
-  pre:{hora:'17:00', n:'Pre-entreno', obj:{kcal:302,p:20,c:59,g:2},
-    nota:'30-45 min antes de entrenar. Grasa casi nula A PROPÓSITO: retrasaría la digestión. Estos hidratos son los que alimentan una sesión de 95 min — no se recortan nunca.',
+  pre:{hora:'17:00', n:'Pre-entreno', obj:{kcal:330,p:24,c:57,g:2},
+    nota:'30-45 min antes de entrenar. Grasa casi nula A PROPÓSITO: retrasaría la digestión. ' +
+         'SIN MIEL: eran 5-6 g, o sea 16-19 kcal. Al quitarla solo P1 se caía a ámbar, y se ha ' +
+         'compensado con 5-7 g más de pan en P1, P2 y P4. Los cinco siguen en verde.',
     op:[
-      {id:'P1', n:'Plátano, pan con miel y queso batido', base:true,
-       it:[['platano',120],['pan_integral',45],['queso_batido',150],['miel',8]]},
-      {id:'P2', n:'Pan con miel y skyr',
-       it:[['platano',120],['pan_integral',35],['miel',12],['skyr',150]]},
+      {id:'P1', n:'Pan integral con queso batido', base:true,
+       it:[['pan_integral',92],['queso_batido',170]]},
+      {id:'P2', n:'Plátano, pan y yogur griego',
+       it:[['platano',120],['pan_integral',45],['yogur_griego0',170]]},
       {id:'P3', n:'Dos plátanos y queso batido',
        it:[['platano',240],['queso_batido',200]],
        nota:'La más rápida: cero preparación.'},
-      {id:'P4', n:'Manzana, pan con miel y queso batido',
-       it:[['manzana',180],['pan_integral',50],['queso_batido',180],['miel',10]]}
+      {id:'P4', n:'Manzana, pan y queso batido',
+       it:[['manzana',180],['pan_integral',57],['queso_batido',180]]},
+      {id:'P5', n:'Leche, queso batido y plátano',
+       it:[['leche_desn',250],['queso_batido',100],['platano',120],['pan_integral',35]]}
     ]},
 
   /* ─────── CENA · 20:45 · POST-ENTRENO ─────── */
-  cena:{hora:'20:45', n:'Cena (post-entreno)', obj:{kcal:650,p:37,c:56,g:28},
-    nota:'Mayor carga de hidratos del día, justo después de entrenar.',
+  cena:{hora:'20:45', n:'Cena (post-entreno)', obj:{kcal:615,p:34,c:62,g:26},
+    nota:'Se cocinan al momento. Entre semana, TECHO DE 30 MINUTOS: sales del gimnasio a 19:30 y ' +
+         'cenas a 20:45. Fin de semana pueden ser de 35-50 min. La patata y el arroz pueden venir ' +
+         'ya cocidos de la tanda.',
     op:[
-      {id:'CA', n:'Huevos con patata', base:true, rot:'A',
-       it:[['patata',270],['huevo',220],['ensalada',150],['aove',12]]},
-      {id:'CB', n:'Merluza con patata', rot:'B',
-       it:[['patata',320],['merluza',200],['verdura_cong',150],['aove',23]]},
-      {id:'CC', n:'Garbanzos con pollo', rot:'C',
-       it:[['garbanzos_bote',200],['muslo_pollo',80],['verdura_cong',150],['pan_integral',50],['aove',8]],
-       nota:'OBLIGATORIA 2 veces/semana. Sin avena, la legumbre es lo que sostiene los 30-35 g de fibra.'},
-      {id:'CC2',n:'Alubias blancas con pollo', rot:'C',
-       it:[['alubias_bote',250],['muslo_pollo',80],['verdura_cong',150],['pan_integral',45],['aove',12]],
+      {id:'CA', n:'Huevos con patata', base:true, rot:'A', min:15, pro:['huevo'],
+       it:[['huevo',220],['patata',300],['ensalada',130],['aove',7]],
+       nota:'4 huevos ya traen 20,9 g de grasa: 7 g de aceite bastan. Al horno o con sartén antiadherente.'},
+      /* ── Las tres merluzas ──
+         La merluza es CONGELADA, así que vive en la cena: se saca del congelador
+         por la mañana y descongela en la nevera durante el día.
+         Tres técnicas distintas a propósito, y en este orden de calidad para
+         pescado congelado:
+           CN guisada  → la mejor. La textura da igual, la salsa la arregla.
+           CP rebozada → muy buena. El rebozado sella el agua que suelta.
+           CB al horno → buena. Calor seco y envolvente.
+         Lo que NO hay es merluza a la plancha: el congelado suelta agua en la
+         sartén y se cuece en su jugo en lugar de dorarse. La versión anterior de
+         CB era a la plancha y era el peor uso posible del producto. */
+
+      {id:'CB', n:'Merluza al horno con patata', rot:'B', min:25, pro:['merluza'], pesc:true,
+       it:[['merluza',165],['patata',300],['verdura_cong',150],['aove',20]],
+       prep:{t:'25 min', dif:'Fácil',
+         ut:['Bandeja de horno','Papel de cocina','Tabla y cuchillo'],
+         pasos:[
+           'Horno a 200 °C, calor arriba y abajo.',
+           'SECA LOS LOMOS CON PAPEL DE COCINA, por las dos caras y con insistencia. El congelado ' +
+           'retiene mucha agua y es lo único que separa un pescado al horno de un pescado hervido.',
+           'Patata en rodajas de 3 mm. Si viene ya cocida de la tanda, sáltate esto y solo la doras.',
+           'Extiende la patata en la bandeja con la mitad del aceite, sal y pimienta. 12 min al horno sola.',
+           'Saca la bandeja, coloca los lomos encima, riega con el resto del aceite y sal.',
+           'Otros 10-12 min, según el grosor. Está listo cuando la carne se separa en láminas al presionar.',
+           'La verdura congelada, en sartén aparte 5-6 min a fuego fuerte y sin tapar.'],
+         tip:'La patata entra 12 minutos antes que el pescado. Si los metes juntos, o la patata queda cruda o la merluza queda seca.'}},
+
+      {id:'CN', n:'Merluza en salsa verde con patata', min:25, pro:['merluza'], pesc:true,
+       it:[['merluza',150],['patata',300],['guisantes',80],['ajo',6],
+           ['harina',6],['caldo_pollo',100],['aove',20]],
+       nota:'LA MEJOR OPCIÓN PARA MERLUZA CONGELADA: al ir guisada, el agua que suelta se ' +
+            'integra en la salsa en lugar de arruinar la textura. Perejil abundante, que no pesa.',
+       prep:{t:'25 min', dif:'Fácil',
+         ut:['Cazuela ancha y baja','Tabla y cuchillo','Cuchara de madera'],
+         pasos:[
+           'Seca los lomos con papel y sálalos. Lamina el ajo muy fino.',
+           'Cazuela a fuego medio-bajo con el aceite. Ajo laminado 1 minuto, SIN que coja color: dorado amarga la salsa.',
+           'Añade la harina y remueve 1-2 minutos para tostarla. Este paso es el que evita que la salsa sepa a crudo.',
+           'Añade el caldo poco a poco removiendo en círculos, y un puñado grande de perejil picado.',
+           'Cuando espese ligeramente, mete los lomos con la piel hacia abajo y los guisantes.',
+           'Fuego bajo, 8-10 minutos. NO REMUEVAS con la cuchara: mueve la cazuela en vaivén cada minuto. ' +
+           'Es lo que emulsiona la salsa y lo que evita que el pescado se deshaga.',
+           'La patata cocida de la tanda, en rodajas, los últimos 3 minutos dentro de la salsa.'],
+         tip:'El vaivén de la cazuela en lugar de la cuchara. La gelatina del pescado es la que liga la salsa verde, y removiendo la rompes.'}},
+
+      {id:'CP', n:'Merluza rebozada con arroz', min:25, pro:['merluza'], pesc:true,
+       it:[['merluza',150],['harina',12],['huevo',30],['arroz',60],
+           ['verdura_cong',150],['limon',10],['aove',17]],
+       nota:'El rebozado sella el agua del congelado, así que es la segunda mejor técnica ' +
+            'para este producto. A la romana: harina y huevo, sin pan rallado.',
+       prep:{t:'25 min', dif:'Fácil',
+         ut:['Sartén honda','2 platos hondos','Papel de cocina','Cazo','Pinzas'],
+         pasos:[
+           'Arroz a cocer, o usa el de la tanda.',
+           'SECA LOS LOMOS A CONCIENCIA y córtalos en tacos de 4-5 cm. Sal y pimienta.',
+           'Harina en un plato, huevo batido en otro.',
+           'Aceite en la sartén a fuego medio-alto. Está listo cuando una pizca de harina burbujea al caer.',
+           'Pasa cada taco por harina —sacudiendo el exceso— y luego por huevo. En ese orden: al revés no agarra.',
+           'A la sartén sin abarrotar, 2 minutos por cara. Salen cuando el rebozado está dorado y firme.',
+           'A papel de cocina 30 segundos para que suelte el aceite de fuera.',
+           'Verdura congelada aparte, 5-6 min a fuego fuerte. Limón al servir.'],
+         tip:'Harina primero y huevo después, nunca al revés, y el pescado bien seco. Sobre pescado húmedo el rebozado se despega en la sartén y te quedas con la merluza desnuda y una sartén sucia.'}},
+      {id:'CC', n:'Garbanzos con pollo', rot:'C', min:15, leg:true, pro:['pollo_muslo','legumbre'],
+       it:[['garbanzos_bote',200],['muslo_pollo',65],['verdura_cong',150],['pan_integral',45],['aove',8]],
+       nota:'OBLIGATORIA 2 veces/semana junto a CC2. Sin avena, la legumbre es lo que sostiene los 30-40 g de fibra.'},
+      {id:'CC2',n:'Alubias blancas con pollo', rot:'C', min:15, leg:true, pro:['pollo_muslo','legumbre'],
+       it:[['alubias_bote',250],['muslo_pollo',65],['verdura_cong',150],['pan_integral',40],['aove',12]],
        nota:'Variante de CC. Cuenta igual como ración de legumbre.'},
-      {id:'CD', n:'Lubina con patata',
-       it:[['patata',300],['lubina',160],['verdura_cong',150],['aove',18]]},
-      {id:'CE', n:'Tortilla de patata con ensalada',
-       it:[['patata',250],['huevo',165],['claras',100],['ensalada',150],['aove',14]],
+      {id:'CE', n:'Tortilla de patata con ensalada', min:30, pro:['huevo'],
+       it:[['patata',250],['huevo',165],['claras',70],['ensalada',130],['aove',12]],
        prep:{t:'30 min', dif:'Media',
          ut:['Sartén antiadherente de 20-22 cm','Plato llano para dar la vuelta','Bol grande','Espumadera'],
          pasos:[
@@ -477,13 +549,8 @@ const MEALS = {
            'Tapa con el plato, dale la vuelta con decisión y cuaja 2-3 min más.',
            'Sirve con la ensalada aliñada.'],
          tip:'Los 5 minutos de reposo de la patata dentro del huevo son lo que diferencia una tortilla jugosa y ligada de una tortilla con patatas dentro.'}},
-      {id:'CF', n:'Salmón con patata',
-       it:[['patata',280],['salmon',140],['verdura_cong',150],['aove',6]],
-       nota:'Máximo 1 vez por semana: es el plato más caro del recetario.'},
-      {id:'CG', n:'Pasta con atún',
-       it:[['pasta',65],['atun_natural',120],['verdura_cong',150],['tomate_frito',40],['aove',16]]},
-      {id:'CH', n:'Salteado de cerdo con arroz',
-       it:[['lomo_cerdo',130],['arroz',60],['verdura_cong',200],['salsa_soja',15],
+      {id:'CH', n:'Salteado de cerdo con arroz', min:20, pro:['cerdo_lomo'],
+       it:[['lomo_cerdo',110],['arroz',65],['verdura_cong',170],['salsa_soja',15],
            ['ajo',5],['aove',14],['sesamo',4]],
        prep:{t:'20 min', dif:'Fácil',
          ut:['Sartén grande o wok','Cazo','Tabla y cuchillo'],
@@ -497,25 +564,30 @@ const MEALS = {
            'Sésamo y sirve sobre el arroz.'],
          tip:'Dos tandas, no una. Si abarrotas la sartén, se enfría y el cerdo cuece en su jugo: es la diferencia entre un salteado y un guiso. Y corta contra la fibra o queda duro.'}},
 
-      {id:'CJ', n:'Lasaña de calabacín y ternera',
-       it:[['ternera_5',100],['calabacin',250],['tomate_triturado',150],['mozzarella',40],
+      {id:'CJ', n:'Lasaña de calabacín y cerdo', min:50, fds:true, pro:['cerdo_taquitos'],
+       it:[['taquitos_cerdo',85],['calabacin',250],['tomate_triturado',150],['mozzarella',40],
            ['patata',200],['aove',12],['parmesano',8]],
+       nota:'50 min: SOLO sábado o domingo. Va con taquitos de cerdo picados a cuchillo, ' +
+            'no con picada de ternera (5,40 €/100 g de proteína y preparado de carne).',
        prep:{t:'50 min', dif:'Media-alta',
          ut:['Horno','Fuente para horno','Sartén','Mandolina o cuchillo bien afilado','Papel de cocina'],
          pasos:[
            'Horno a 190 °C.',
            'Corta el calabacín a lo largo en láminas de 3 mm. Extiéndelas sobre papel de cocina, sal por encima, y déjalas 10 minutos. Después sécalas bien.',
            'Corta la patata en rodajas de 3 mm y dales 6 min de microondas, o cuécelas 8 min. Tienen que quedar casi hechas: en el horno no se cocinan solas.',
-           'Sartén con la mitad del aceite. Dora la ternera 3-4 min, añade el tomate triturado, sal, pimienta y orégano, y reduce 8 min a fuego bajo.',
+           'Pica los taquitos de cerdo a cuchillo en trozos de medio centímetro. Sartén con la mitad del aceite: dóralos 3-4 min, añade el tomate triturado, sal, pimienta y orégano, y reduce 8 min a fuego bajo.',
            'Monta en la fuente: base de patata, mitad de la carne, capa de calabacín, resto de la carne, otra capa de calabacín.',
            'Mozzarella en trozos y parmesano rallado por encima. Riega con el resto del aceite.',
            'Horno 25 min. Los últimos 5 con gratinador si lo tienes.',
            'Deja reposar 10 minutos antes de cortar, o se desmonta.'],
          tip:'El paso de la sal en el calabacín no se salta. Sin él suelta toda el agua dentro del horno y acabas con una sopa en la fuente.'}},
 
-      {id:'CK', n:'Risotto de champiñones con pollo',
-       it:[['arroz',60],['muslo_pollo',115],['champinones',200],['nata_ligera',40],
-           ['parmesano',12],['cebolla',50],['aove',10]],
+      {id:'CK', n:'Risotto de champiñones con pollo', min:35, fds:true, pro:['pollo_muslo'],
+       it:[['arroz',60],['muslo_pollo',110],['champinones',180],['nata_ligera',40],
+           ['parmesano',12],['cebolla',45],['aove',8]],
+       nota:'35 min: sábado o domingo. Es la cena con MENOS FIBRA del catálogo (3,4 g). Si el día se ' +
+            'queda cerca de 30 g, cambia los 45 g de cebolla por 60 g de guisantes congelados: ' +
+            '+3 g de fibra por 12 kcal.',
        prep:{t:'35 min', dif:'Media',
          ut:['Sartén honda o cazuela ancha','Cazo para el caldo','Cucharón','Tabla y cuchillo','Rallador'],
          pasos:[
@@ -528,14 +600,209 @@ const MEALS = {
            'Añade el caldo caliente cucharón a cucharón, removiendo, y no eches el siguiente hasta que haya absorbido el anterior. Unos 18 minutos en total.',
            'Fuera del fuego: nata, parmesano, el pollo y los champiñones reservados. Remueve fuerte 30 segundos y reposa 2 min tapado.'],
          tip:'No hace falta arroz arborio: el redondo normal suelta almidón de sobra si remueves. Lo que no se puede saltar es el caldo caliente y añadido poco a poco.'}},
-      {id:'CL', n:'Gambas al ajillo con arroz',
-       it:[['gambas',165],['arroz',60],['ajo',8],['verdura_cong',150],['aove',25]],
-       nota:'Los 25 g de aceite son parte del plato, no un extra: es donde se cocina el ajo y lo que hace la salsa. Aceite a fuego medio, ajo laminado hasta que empiece a dorar, gambas 2 min y fuera.'}
+      {id:'CL', n:'Patata con jamón y cottage', min:5, pro:['cerdo_jamon'],
+       it:[['patata',320],['jamon_cocido',100],['queso_cottage',50],['ensalada',150],
+           ['aove',12],['nueces',8]],
+       nota:'La cena de 5 minutos, con la patata ya cocida de la tanda. Cero fuego. ' +
+            'REESCRITA: la versión anterior llevaba 250 g de cottage, cinco veces el límite. ' +
+            'Ahora la proteína la pone el jamón cocido y el cottage vuelve a ser el acento (50 g).'},
+
+      {id:'CM', n:'Pan con huevo, jamón y cottage', min:10, pro:['huevo','cerdo_jamon'],
+       it:[['pan_integral',100],['huevo',110],['jamon_cocido',40],['queso_cottage',50],
+           ['ensalada',150],['aove',8]],
+       nota:'10 minutos. REESCRITA igual que CL: llevaba 200 g de cottage, ahora 50. ' +
+            'Dos huevos a la plancha sobre el pan, jamón y el cottage por encima fuera del fuego.'}
     ]}
 };
 
-/* Rotación semanal de cenas. Índice = día (0 = domingo). */
+/* Rotación de cenas por letra, heredada. Se conserva porque el calendario
+   la muestra como pista, pero el planificador real es MENU_PLAN. */
 const CENA_ROT = {1:'A', 2:'C', 3:'A', 4:'B', 5:'C', 6:'B', 0:'A'};
+
+/* ═══════════════════ PLANIFICADOR DE MENÚ ═══════════════════
+   Modelo de TANDAS, no de rotación por día de la semana. Es la diferencia
+   de fondo con la versión anterior de la app, que servía siempre el mismo
+   desayuno, almuerzo y comida y solo rotaba la cena.
+
+   Estructura real (§10):
+   · Domingo tarde  → tanda que cubre L-M-X
+   · Miércoles noche → tanda que cubre J-V-S
+   · El almuerzo y la comida son EL MISMO PLATO los tres días del bloque.
+   · Desayuno, pre-entreno y cena cambian a diario.
+   · Domingo: almuerzo relajado + comida libre con techo de 900 kcal.
+
+   Todo es función pura de la fecha: no hay estado que arrastrar, así que
+   la vista de varios días se calcula de golpe sin recorrer el calendario. */
+const MENU_PLAN = {
+
+  /* Primer día de la primera tanda: jueves 20 de agosto de 2026, cocinada
+     la noche del miércoles 19. anchorWeek es el lunes de esa semana. */
+  anchor:'2026-08-20',
+  anchorWeek:'2026-08-17',
+
+  /* Ciclo diario de 5. Desayuno y pre-entreno avanzan un puesto cada día. */
+  des:['D1','D2','D3','D4','D5'],
+  pre:['P1','P2','P3','P4','P5'],
+
+  /* 30 bloques de 3 días = 15 semanas sin repetir pareja almuerzo+comida,
+     que es exactamente lo que salía de 6 almuerzos y 10 comidas.
+     LAS 30 PAREJAS ESTÁN VALIDADAS CONTRA §8.2: ninguna comparte clave de
+     proteína entre el almuerzo y la comida del mismo día. Si tocas esta
+     tabla, la vista de menú te avisa en rojo del bloque que rompe la regla
+     (checkBlocks() más abajo). */
+  blocks:[
+    ['A5','C6'],  ['A3','C10'], ['A2','C1'],  ['A6','C7'],  ['A1','C2'],
+    ['A4','C9'],  ['A2','C3'],  ['A5','C8'],  ['A3','C4'],  ['A6','C6'],
+    ['A1','C10'], ['A4','C7'],  ['A2','C4'],  ['A6','C1'],  ['A5','C5'],
+    ['A3','C2'],  ['A1','C3'],  ['A4','C8'],  ['A2','C5'],  ['A6','C3'],
+    ['A5','C9'],  ['A1','C4'],  ['A3','C5'],  ['A4','C10'], ['A6','C8'],
+    ['A2','C6'],  ['A5','C7'],  ['A1','C1'],  ['A3','C9'],  ['A4','C2']
+  ],
+
+  /* Cenas: CUATRO patrones semanales que rotan. Índice = día (0 = domingo).
+     Los cuatro cumplen las cuatro reglas a la vez:
+       · 3 cenas de MERLUZA por semana (CB horno · CN salsa verde · CP rebozada)
+       · 2 cenas de legumbre (CC, CC2), mínimo obligatorio sin avena
+       · las siete cenas de la semana, distintas
+       · CJ (50 min), CK (35) y CE (30) solo en sábado o domingo; de lunes a
+         viernes nada por encima de 30 min
+
+     POR QUÉ CUATRO Y NO DOS: 3 merluzas + 2 legumbres son 5 de las 7 cenas
+     fijas. Solo quedan 2 huecos por semana para las otras siete recetas
+     (CA, CE, CH, CJ, CK, CL, CM), así que con un ciclo de 2 semanas la mitad
+     no aparecería nunca. Con 4 semanas cada una sale al menos una vez. */
+  cenas:[
+    {1:'CB', 2:'CC',  3:'CN', 4:'CC2', 5:'CP',  6:'CK', 0:'CA'},
+    {1:'CH', 2:'CN',  3:'CC', 4:'CB',  5:'CC2', 6:'CJ', 0:'CP'},
+    {1:'CP', 2:'CC2', 3:'CB', 4:'CC',  5:'CN',  6:'CE', 0:'CL'},
+    {1:'CM', 2:'CB',  3:'CC2',4:'CP',  5:'CC',  6:'CJ', 0:'CN'}
+  ],
+
+  domAlmuerzo:'AR',
+  domComida:'CLIBRE',
+
+  /* Umbral de aviso de cottage por día. NO es una regla nutricional: es
+     coste. Con el cottage como protagonista de 4 de los 5 desayunos el
+     consumo medio sube a ~111 g/día, o sea ~12 tarrinas de 300 g al mes
+     frente a las ~3,4 de antes. Por encima de este valor el día sale en
+     ámbar para que la cifra esté delante y no escondida. */
+  cottageAviso:150,
+
+  /* ── Índices, todos derivados de la fecha ── */
+
+  /* Número de bloque de 3 días. -1 los domingos, que no tienen bloque. */
+  blockSeq(f){
+    if(D.dow(f)===0) return -1;
+    const semanas = Math.round(D.diffDays(this.anchorWeek, D.weekStart(f)) / 7);
+    return semanas*2 + (D.dow(f)>=4 ? 1 : 0) - 1;
+  },
+
+  /* Puesto del ciclo diario. Módulo positivo, para que funcione también
+     con fechas anteriores al ancla. */
+  daySeq(f){
+    const n = D.diffDays(this.anchor, f);
+    return ((n % 5) + 5) % 5;
+  },
+
+  weekSeq(f){
+    const n = this.cenas.length;
+    const s = Math.round(D.diffDays(this.anchorWeek, D.weekStart(f)) / 7);
+    return ((s % n) + n) % n;
+  },
+
+  /* Id de plato planificado para una fecha y una franja */
+  idFor(f, comida){
+    const dom = D.dow(f)===0;
+    switch(comida){
+      case 'desayuno': return this.des[this.daySeq(f)];
+      case 'pre':      return this.pre[this.daySeq(f)];
+      case 'cena':     return this.cenas[this.weekSeq(f)][D.dow(f)];
+      case 'almuerzo': {
+        if(dom) return this.domAlmuerzo;
+        const b = this.blockSeq(f);
+        return this.blocks[((b % this.blocks.length) + this.blocks.length) % this.blocks.length][0];
+      }
+      case 'comida': {
+        if(dom) return this.domComida;
+        const b = this.blockSeq(f);
+        return this.blocks[((b % this.blocks.length) + this.blocks.length) % this.blocks.length][1];
+      }
+    }
+    return null;
+  },
+
+  /* Fecha de la sesión de batch cooking que cubre esta fecha */
+  tandaInfo(f){
+    const dw = D.dow(f);
+    if(dw===0) return {n:'Domingo · comida libre', cocina:null, dias:[f]};
+    const esJVS = dw>=4;
+    const lunes = D.weekStart(f);
+    const ini = esJVS ? D.add(lunes,3) : lunes;
+    return {
+      n: esJVS ? 'Tanda J-V-S' : 'Tanda L-M-X',
+      cocina: esJVS ? D.add(lunes,2) : D.add(lunes,-1),   // miércoles noche / domingo tarde
+      cocinaTxt: esJVS ? 'miércoles por la noche' : 'domingo por la tarde',
+      dias: [ini, D.add(ini,1), D.add(ini,2)],
+      seq: this.blockSeq(f)
+    };
+  },
+
+  /* Comprobación de la tabla de bloques contra §8.2. Devuelve los bloques
+     en los que el almuerzo y la comida comparten proteína. Debe salir vacío. */
+  checkBlocks(){
+    const pro = id=>{
+      for(const c of ['almuerzo','comida']){
+        const o = MEALS[c].op.find(x=>x.id===id);
+        if(o) return o.pro || [];
+      }
+      return [];
+    };
+    return this.blocks
+      .map((b,i)=>({i, a:b[0], c:b[1], choque:pro(b[0]).filter(k=>pro(b[1]).includes(k))}))
+      .filter(x=>x.choque.length);
+  },
+
+  /* Comprobación de los patrones de cena. Devuelve un fallo por regla
+     incumplida, con la semana y el detalle. Debe salir vacío.
+     Existe porque las cuatro reglas se contradicen con facilidad: al meter
+     la tercera merluza, la mitad de las recetas se quedaron sin hueco y no
+     me di cuenta hasta contarlas. */
+  checkCenas(){
+    const op  = id=>MEALS.cena.op.find(o=>o.id===id);
+    const err = [];
+
+    this.cenas.forEach((pat,w)=>{
+      const ids  = Object.values(pat);
+      const ops  = ids.map(op);
+
+      if(ops.some(o=>!o))
+        err.push({w, regla:'plato inexistente',
+          det:ids.filter(id=>!op(id)).join(', ')});
+
+      const dup = ids.filter((x,i)=>ids.indexOf(x)!==i);
+      if(dup.length)
+        err.push({w, regla:'cenas repetidas en la semana', det:[...new Set(dup)].join(', ')});
+
+      const pesc = ops.filter(o=>o && o.pesc).length;
+      if(pesc !== 3)
+        err.push({w, regla:'cenas de merluza ≠ 3', det:pesc+' esta semana'});
+
+      const leg = ops.filter(o=>o && o.leg).length;
+      if(leg < 2)
+        err.push({w, regla:'menos de 2 legumbres', det:leg+' esta semana'});
+
+      /* Techo de 30 min de lunes a viernes */
+      const largos = [1,2,3,4,5]
+        .map(d=>op(pat[d]))
+        .filter(o=>o && o.min > 30)
+        .map(o=>`${o.id} (${o.min} min)`);
+      if(largos.length)
+        err.push({w, regla:'cena de más de 30 min entre semana', det:largos.join(', ')});
+    });
+
+    return err;
+  }
+};
 
 /* ═══════════════════ TOLERANCIA DEL CAMBIO DE PLATO ═══════════════════
    Al elegir una alternativa, la app compara con la opción base y avisa.
@@ -555,49 +822,61 @@ const SWAP_TOL = {
    Preparaciones que rinden varias raciones. Sirven para pesar una vez
    el domingo y no tener que registrar nada de lunes a miércoles. */
 const RECIPES = {
-  bc_pollo_arroz:{
-    n:'Tanda de pollo y arroz (3 tuppers de comida)', raciones:3,
-    it:[['muslo_pollo',450],['arroz',180],['verdura_cong',750],['tomate_frito',120],['aove',36]],
-    pasos:['Muslo de pollo deshuesado al horno, 200 °C, 35-40 min, en una sola bandeja.',
-           'Arroz hervido: 180 g en crudo rinden ~470 g cocidos.',
-           'Verdura congelada al vapor o salteada.',
-           'Repartir en 3 tuppers PESANDO EN CRUDO antes de cocinar.',
-           'El aceite en crudo y el tomate frito se añaden en el momento, no al tupper.']},
+  bc_base:{
+    n:'Guarnición base de la tanda (3 días)', raciones:3,
+    it:[['arroz',200],['patata',900]],
+    pasos:['El arroz y la patata de los tres días, de una vez. Son la mitad del trabajo de la tanda.',
+           'Arroz hervido: 200 g en crudo rinden ~520 g cocidos.',
+           'Patata cocida CON PIEL y pelada después: pierde menos agua y sabe mejor.',
+           'Aguantan 3 días en nevera. La patata cocida es lo que hace que CL sea una cena de 5 minutos ' +
+           'y que CA, CB y C9 bajen de 30.',
+           'PESAR EN CRUDO antes de cocinar y repartir por raciones.']},
 
-  bc_pollo_bocata:{
-    n:'Pollo para los bocadillos (3 almuerzos)', raciones:3,
-    it:[['muslo_pollo',360]],
-    pasos:['A la plancha o al horno junto con la tanda de la comida.',
-           '360 g en crudo → ~270 g cocinados → 90 g por bocadillo.',
-           'El pan y el pepino se montan por la mañana, en 1 minuto.']},
+  bc_proteina:{
+    n:'Proteína de la tanda (3 almuerzos + 3 comidas)', raciones:3,
+    it:[],
+    pasos:['El gramaje sale de los dos platos que toquen en el bloque: míralos en la vista de Menú ' +
+           'y multiplica por 3. La pestaña Compra ya te lo hace sumado si eliges 3 días.',
+           'Carne al horno en UNA sola bandeja, 200 °C, 35-40 min. Pescado aparte, 12-15 min.',
+           'El aceite en crudo, el tomate frito y el parmesano se añaden en el momento, no al tupper.',
+           'Etiqueta cada tupper con el día. Suena excesivo hasta la primera vez que te comes ' +
+           'el del viernes un lunes.']},
 
-  bc_patata:{
-    n:'Patata cocida (3 cenas)', raciones:3,
-    it:[['patata',850]],
-    pasos:['Cocer con piel y pelar después: pierde menos agua y sabe mejor.',
-           'Aguanta 3 días en nevera.']},
+  bc_pasta:{
+    n:'Pasta de la tanda', raciones:3,
+    it:[['pasta_integral',210]],
+    pasos:['AL DENTE MENOS 1 MINUTO. Se termina de hacer al recalentar en el microondas.',
+           'Escurrir, enfriar con un hilo de agua y mezclar con un poco de aceite para que no se pegue.',
+           'La salsa, en un compartimento aparte si el tupper lo tiene: la pasta la absorbe en 3 días.']},
 
   tortilla_patata:{
-    n:'Tortilla de patata para cena', raciones:1,
-    it:[['patata',250],['huevo',165],['claras',100],['aove',14]],
-    pasos:['Patata en rodajas finas, pochada en el aceite.',
-           'Batir huevo entero + claras. Cuajar a fuego medio.']}
+    n:'Tortilla de patata para cena (CE)', raciones:1,
+    it:[['patata',250],['huevo',165],['claras',70],['aove',12]],
+    pasos:['Patata en rodajas finas, pochada en el aceite a fuego medio-bajo 12-15 min.',
+           'Batir huevo entero + claras. Reposar la patata 5 min dentro del huevo.',
+           'Cuajar a fuego medio 3-4 min por cara.']}
 };
 
 /* ═══════════════════ CONVERSIONES CRUDO → COCINADO ═══════════════════
    Todos los gramajes del plan son EN CRUDO. Esta tabla es solo informativa,
    para cuando toque pesar algo ya cocinado. */
 const COOK_FACTOR = {
-  muslo_pollo:0.75, pechuga_pollo:0.75, pavo_picado:0.78, ternera_5:0.78,
+  muslo_pollo:0.75, pechuga_pollo:0.75,
+  lomo_cerdo:0.75, taquitos_cerdo:0.75,
   merluza:0.80, lubina:0.80, salmon:0.80,
-  arroz:2.60, pasta:2.40, patata:0.95,
+  arroz:2.60, pasta:2.40, pasta_integral:2.40, patata:0.95, boniato:0.95,
   garbanzos_bote:1, alubias_bote:1
 };
 
 /* ═══════════════════ OBJETIVOS DIARIOS DE FIBRA E HIDRATACIÓN ═══════════════════ */
 const DAILY_EXTRAS = {
   fibra:{min:30, max:40,
-    nota:'Los días de cena A se quedan en ~30 g. Si notas peor digestión, sube la verdura de la cena de 150 a 250 g.'},
+    nota:'El día más flojo es el que lleva risotto CK (3,4 g en la cena). Arreglo dentro de §7: ' +
+         'cambia los 45 g de cebolla del risotto por 60 g de guisantes congelados, +3 g de fibra por 12 kcal.'},
+  cottage:{aviso:150,
+    nota:'Con el cottage protagonista de 4 de los 5 desayunos el consumo medio es ~111 g/día: ' +
+         '~12 tarrinas de 300 g al mes frente a ~3,4 antes. Es preferencia, no eficiencia ' +
+         '(11,7 g P/100 kcal frente a 22,3 del queso batido). Los días por encima de 150 g salen en ámbar.'},
   agua:{min:3000, obj:3500, nota:'Ya lo haces bien: 3-4 L. No tocar.'},
   cafe:{max:2, corte:'16:00',
     nota:'Último café a las 16:00. Con el objetivo de acostarte a 23:30, más tarde sabotea el sueño, que es la prioridad nº1 de la fase.'},
@@ -631,8 +910,8 @@ const SHOP = {
   muslo_pollo:   {sec:1, factor:1.43, un:'g con hueso', granel:true,
                   nota:'Jamoncitos o muslos con hueso. Deshuesar en casa: 10 min por tanda y sale a 2,29 €/100 g de proteína.'},
   pechuga_pollo: {sec:1, un:'g', granel:true},
-  pavo_picado:   {sec:1, pack:500, un:'bandejas de 500 g'},
-  ternera_5:     {sec:1, pack:500, un:'bandejas de 500 g'},
+  taquitos_cerdo:{sec:1, pack:400, un:'bandejas de 400 g',
+                  nota:'Si te cansas de ellos: lomo en pieza a 4,95 €/kg cortado en dados. Más barato y más magro.'},
   jamon_cocido:  {sec:1, pack:200, un:'paquetes de 200 g'},
 
   /* ── Pescadería y congelados ── */
@@ -648,7 +927,9 @@ const SHOP = {
   huevo:         {sec:3, ud:55, un:'huevos', pack_ud:12},
   claras:        {sec:3, pack:1000, un:'briks de 1 L'},
   queso_batido:  {sec:3, pack:500, un:'envases de 500 g'},
-  skyr:          {sec:3, pack:450, un:'envases de 450 g'},
+  queso_cottage: {sec:3, pack:300, un:'tarrinas de 300 g',
+                  nota:'A ~111 g/día son unas 12 tarrinas al mes. Es la línea que más sube de la cesta ' +
+                       'con los desayunos nuevos.'},
   yogur_griego0: {sec:3, pack:500, un:'packs de 4×125 g'},
   leche_desn:    {sec:3, pack:1000, un:'litros'},
   queso_havarti: {sec:3, pack:200, un:'paquetes de 200 g'},
@@ -661,6 +942,8 @@ const SHOP = {
   /* ── Despensa ── */
   arroz:         {sec:5, pack:1000, un:'kg'},
   pasta:         {sec:5, pack:500, un:'paquetes de 500 g'},
+  pasta_integral:{sec:5, pack:500, un:'paquetes de 500 g',
+                  nota:'8 g de fibra/100 g frente a 3 de la normal. Es la que llevan A2, C2 y C6.'},
   garbanzos_bote:{sec:5, ud:250, un:'botes',
                   nota:'250 g escurridos por bote de 400 g.'},
   alubias_bote:  {sec:5, ud:250, un:'botes'},
@@ -693,7 +976,6 @@ const SHOP = {
 
   /* ── Despensa ── */
   salsa_soja:      {sec:5, pack:150, un:'botellas de 150 ml'},
-  leche_coco:      {sec:5, pack:400, un:'latas de 400 ml'},
   curry_polvo:     {sec:5, pack:50,  un:'botes'},
   noodles:         {sec:5, pack:250, un:'paquetes de 250 g'},
   tomate_triturado:{sec:5, pack:400, un:'briks de 400 g'},

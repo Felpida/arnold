@@ -96,9 +96,26 @@ const DB = {
    con lo que ya hay en IndexedDB e inserta SOLO lo que falta.
    Nunca sobrescribe un alimento existente, así que los productos
    escaneados y las correcciones manuales se conservan. */
+/* Alimentos retirados del plan. seedFoods() los borra de IndexedDB en cada
+   arranque, porque un alimento que solo se ha quitado de FOODS seguiría
+   existiendo en las instalaciones ya creadas y volvería a aparecer en el
+   selector del registro libre.
+   Solo se borran los sembrados por el plan (origen 'plan'): si en algún
+   momento escaneaste el producto y lo corregiste a mano, se respeta. */
+const FOOD_RETIRED = {
+  skyr:        'Retirado 19/08/2026 por preferencia. Su hueco lo cubre el yogur griego 0 %.',
+  leche_coco:  'Retirada por decisión del usuario. El curry C4 va con nata ligera 15 %.',
+  pavo_picado: 'No existe en Mercadona. Verificado 19/08/2026.',
+  ternera_5:   'Descartada: 5,40 €/100 g de proteína y es preparado de carne (E-221).'
+};
+
 async function seedFoods(){
   const existing = await DB.getAll('foods');
-  const have = new Set(existing.map(f=>f.id));
+
+  /* Purga de retirados antes de sembrar */
+  const retirar = existing.filter(f=>FOOD_RETIRED[f.id] && f.origen==='plan');
+  for(const f of retirar) await DB.del('foods', f.id);
+  const have = new Set(existing.filter(f=>!FOOD_RETIRED[f.id]).map(f=>f.id));
 
   const nuevos = Object.entries(FOODS)
     .filter(([id])=>!have.has(id))
@@ -117,7 +134,7 @@ async function seedFoods(){
       pasos:r.pasos, origen:'plan'}));
   if(nuevasR.length) await DB.bulk('recipes', nuevasR);
 
-  return {foods:nuevos.length, recipes:nuevasR.length};
+  return {foods:nuevos.length, recipes:nuevasR.length, retirados:retirar.length};
 }
 
 /* ═══════════════════ FECHAS ═══════════════════ */

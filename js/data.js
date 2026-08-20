@@ -366,8 +366,11 @@ const RUN_DEFAULT = [{d:3,t:'z2',min:30},{d:0,t:'largo',min:45}];
    Las calorías de B en adelante son PROVISIONALES: se recalculan
    sobre el gasto real medido el 30 de agosto. */
 const PHASES = [
+  /* Fase A revisada 20/08/2026. La tabla anterior (2.500 / 292 / 72) no cuadraba
+     con el menú: la suma de las cinco franjas daba 2.565 kcal y 172 g de proteína.
+     Ahora los objetivos del día y la suma de las franjas coinciden. */
   {id:'A', n:'Fase A · Calibración',   desde:'2026-08-19', hasta:'2026-08-30',
-   kcal:2500, prot:162, hc:292, grasa:72, pasos:6000,  dormir:'23:45'},
+   kcal:2548, prot:162, hc:316, grasa:76, pasos:6000,  dormir:'23:45'},
   {id:'B', n:'Fase B · Recomposición', desde:'2026-08-31', hasta:'2027-01-17',
    kcal:2350, prot:160, hc:270, grasa:70, pasos:8000,  dormir:'23:30'},
   {id:'C', n:'Fase C · Hipertrofia',   desde:'2027-01-18', hasta:'2027-04-11',

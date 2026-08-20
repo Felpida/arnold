@@ -30,8 +30,26 @@ const Diet = {
 
     document.querySelectorAll('#dietTabs button').forEach(b=>b.onclick = ()=>{
       document.querySelectorAll('#dietTabs button').forEach(x=>x.classList.toggle('on',x===b));
-      ['cal','shop','rec','food'].forEach(k=>el('dt-'+k).classList.toggle('hide', k!==b.dataset.dt));
+      ['cal','menu','shop','rec','food'].forEach(k=>el('dt-'+k).classList.toggle('hide', k!==b.dataset.dt));
+      if(b.dataset.dt==='menu') this.renderMenuDoc();
     });
+
+    /* ── Menú seguido ── */
+    el('mnDesde').value = D.today();
+    el('mnDesde').onchange = ()=>this.renderMenuDoc();
+    el('mnDias').onchange  = ()=>this.renderMenuDoc();
+    el('mnHoy').onclick    = ()=>{ el('mnDesde').value = D.today(); this.renderMenuDoc(); };
+    el('mnTanda').onclick  = ()=>{
+      const t = MENU_PLAN.tandaInfo(D.today());
+      el('mnDesde').value = t.dias[0];
+      el('mnDias').value  = String(t.dias.length);
+      this.renderMenuDoc();
+    };
+    el('mnSemana').onclick = ()=>{
+      el('mnDesde').value = D.weekStart(D.today());
+      el('mnDias').value  = '7';
+      this.renderMenuDoc();
+    };
 
     el('bScan').onclick     = ()=>this.scanStart();
     el('bScanStop').onclick = ()=>this.scanStop();
@@ -65,6 +83,7 @@ const Diet = {
     this.recipes = await DB.getAll('recipes');
     this.intake  = await DB.getAll('intake');
     this.renderCalendar();
+    this.renderMenuDoc();
     this.renderFoods();
     this.renderRecipes();
     this.renderDishes();
@@ -81,14 +100,28 @@ const Diet = {
   },
 
   /* ═══ PLATO PLANIFICADO PARA UNA FECHA ═══
-     La cena sigue la rotación A/C/A/B/C/B/A; el resto usa la opción base. */
+     Lo decide MENU_PLAN, que modela las TANDAS reales: el almuerzo y la
+     comida son el mismo plato los tres días del bloque, y el desayuno, el
+     pre-entreno y la cena cambian a diario.
+
+     La versión anterior servía siempre la opción `base` en las cuatro
+     franjas que no eran la cena, así que el desayuno y la comida no
+     cambiaban nunca. Por eso el calendario mostraba el mismo menú todos
+     los días del mes. */
   plannedOp(fecha, comida){
     const M = MEALS[comida];
-    if(comida==='cena'){
-      const rot = CENA_ROT[D.dow(fecha)];
-      return M.op.find(o=>o.rot===rot) || M.op[0];
-    }
-    return M.op.find(o=>o.base) || M.op[0];
+    const id = MENU_PLAN.idFor(fecha, comida);
+    return M.op.find(o=>o.id===id) || M.op.find(o=>o.base) || M.op[0];
+  },
+
+  /* Gramos de cottage PLANIFICADOS en un día, sumando las cinco franjas.
+     No es una regla nutricional: es la línea que más sube de la cesta. */
+  cottageOf(fecha){
+    return MEAL_ORDER.reduce((s,c)=>{
+      const it = this.opItems(this.plannedOp(fecha,c)) || [];
+      const x = it.find(([id])=>id==='queso_cottage');
+      return s + (x ? x[1] : 0);
+    }, 0);
   },
 
     /* Sustituye la verdura de acompañamiento según la preferencia elegida.
@@ -147,6 +180,264 @@ const Diet = {
       });
     }
     return n;
+  },
+
+  /* ═══════════════════ MENÚ SEGUIDO ═══════════════════
+     Documento scrolleable: una hoja por día, una debajo de otra, con el
+     menú que toca. Intervalo de 1 a 7 días. El encabezado fijo dice en
+     qué día estás mientras bajas.
+
+     Todo se calcula desde MENU_PLAN, que es función pura de la fecha, así
+     que pintar 7 días no cuesta más que pintar uno. */
+
+  menuRange(){
+    const desde = el('mnDesde').value || D.today();
+    const dias  = Math.min(7, Math.max(1, +el('mnDias').value || 3));
+    return {desde, dias};
+  },
+
+  /* Nivel de desviación de un valor frente a su objetivo, con las
+     tolerancias de SWAP_TOL: la proteína es más estricta que las kcal. */
+  devLvl(v, obj, macro){
+    if(!obj) return '';
+    const d = Math.abs(v-obj)/obj;
+    const t = macro==='p' ? [SWAP_TOL.ok.p, SWAP_TOL.warn.p] : [SWAP_TOL.ok.kcal, SWAP_TOL.warn.kcal];
+    return d<=t[0] ? 'ok' : d<=t[1] ? 'warn' : 'bad';
+  },
+
+  /* Datos completos de un día: franjas, macros, totales y avisos */
+  dayMenu(f){
+    /* Fuera del macrociclo (antes del 19/08/2026 o después del 04/07/2027)
+       phaseFor no devuelve nada. Sin este respaldo la hoja reventaría al
+       leer ph.kcal, y el selector de fecha permite elegir cualquier día. */
+    const ph  = Calc.phaseFor(f) ||
+                {n:'Fuera de fase', kcal:2548, prot:162, hc:316, grasa:76};
+    const t   = MENU_PLAN.tandaInfo(f);
+    const tot = {kcal:0,p:0,c:0,g:0,fib:0};
+
+    const franjas = MEAL_ORDER.map(c=>{
+      const op  = this.plannedOp(f,c);
+      const rec = this.intakeOf(f,c);
+      const real= rec ? (MEALS[c].op.find(o=>o.id===rec.opReal) || null) : null;
+      const m   = op.libre ? {kcal:0,p:0,c:0,g:0,fib:0} : this.macrosOf(op);
+      const eff = rec?.tot || m;                 // lo registrado manda sobre lo planificado
+      /* La comida libre sin registrar no suma: no sabemos qué fue.
+         Registrada sí suma, porque ya son datos reales. */
+      if(!op.libre || rec) ['kcal','p','c','g','fib'].forEach(k=>tot[k] += eff[k]||0);
+      return {c, M:MEALS[c], op, m, rec, real, eff};
+    });
+
+    /* El hueco se calcula siempre que la franja PLANIFICADA sea libre.
+       Si ya está registrada, el hueco pasa a ser informativo y el total
+       del día ya incluye lo que se comió de verdad. */
+    const libre = franjas.find(x=>x.op.libre);
+    const base  = libre && libre.rec
+      ? tot.kcal - (libre.eff.kcal||0)
+      : tot.kcal;
+    const baseP = libre && libre.rec
+      ? tot.p - (libre.eff.p||0)
+      : tot.p;
+
+    return {
+      f, ph, tanda:t, franjas, tot,
+      cottage: this.cottageOf(f),
+      libreRec: !!(libre && libre.rec),
+      hueco:     libre ? Math.round(ph.kcal - base)  : null,
+      techo:     libre ? (libre.op.techo || 900)     : null,
+      protLibre: libre ? Math.round(ph.prot - baseP) : null
+    };
+  },
+
+  /* Una hoja de día */
+  sheetHtml(dm){
+    const {f, ph, tanda, franjas, tot} = dm;
+    const dom = D.dow(f)===0;
+    const hoy = f===D.today();
+    /* Día incompleto: domingo con la comida libre todavía sin registrar.
+       Mientras lo esté, comparar el total con el objetivo no significa nada. */
+    const parcial = dom && !dm.libreRec;
+
+    const filas = op=>{
+      const it = this.opItems(op) || [];
+      if(!it.length) return '';
+      return `<table>${it.map(([id,gr])=>{
+        const fd = this.foods[id];
+        const ud = (fd && fd.ud) ? ` <span class="hint" style="display:inline">≈ ${
+          (gr/fd.ud).toFixed(1).replace('.0','')} ud</span>` : '';
+        return `<tr><td>${fd?fd.n:id}</td><td class="n"><strong>${gr} g</strong>${ud}</td></tr>`;
+      }).join('')}</table>`;
+    };
+
+    const frHtml = x=>{
+      const o = x.op;
+      const cambiado = x.rec && x.real && x.rec.opReal!==x.rec.opPlan;
+      const mostrado = cambiado ? x.real : o;
+      return `<div class="fr">
+        <div class="fr-h">
+          <div><span class="hora">${x.M.hora}</span>
+            <strong style="display:block">${mostrado.n}</strong>
+            <span class="hint" style="margin:1px 0 0">${x.M.n}${
+              o.min ? ' · '+o.min+' min' : ''}${
+              o.leg ? ' · <span class="tag ok">legumbre</span>' : ''}${
+              cambiado ? ' · <span class="tag warn">cambiado por ti</span>' :
+              x.rec ? ' · <span class="tag ok">cumplida</span>' : ''}</span>
+          </div>
+          <div class="fr-mac">${o.libre && !x.rec
+            ? `<strong>${dm.hueco} kcal</strong><br><span class="hint">de hueco</span>`
+            : `<strong>${Math.round(x.eff.kcal)} kcal</strong><br>${x.eff.p.toFixed(0)} P ·
+               ${x.eff.c.toFixed(0)} HC · ${x.eff.g.toFixed(0)} G`}</div>
+        </div>
+        ${filas(mostrado)}
+        ${o.nota?`<p class="note">${o.nota}</p>`:''}
+        ${o.libre && !x.rec ? `<p class="note">Techo <strong>${dm.techo} kcal</strong> ·
+          apunta <strong>~${dm.protLibre} g de proteína</strong> dentro de ella.
+          Regístrala con <strong>Registro libre</strong> desde el calendario.</p>`:''}
+      </div>`;
+    };
+
+    const cel = (lab,v,obj,macro,u)=>{
+      const lvl = obj ? this.devLvl(v,obj,macro) : '';
+      const pct = obj ? Math.round((v-obj)/obj*100) : null;
+      return `<div class="${lvl}"><b>${Math.round(v)}${u||''}</b><span>${lab}</span>
+        ${obj?`<span style="text-transform:none;letter-spacing:0">${pct>=0?'+':''}${pct} %</span>`:''}</div>`;
+    };
+
+    const cotLvl = dm.cottage > MENU_PLAN.cottageAviso ? 'warn' : '';
+    const head = `${D.label(f)}${hoy?' · hoy':''} — ${Math.round(tot.kcal)} kcal · ${tot.p.toFixed(0)} g P`;
+
+    return `<article class="sheet" data-head="${head.replace(/"/g,'&quot;')}">
+      <div class="sheet-h">
+        <div>
+          <h3>${D.labelLong(f)}${hoy?' <span class="tag ok">hoy</span>':''}</h3>
+          <p class="hint">${ph.n} · objetivo ${ph.kcal} kcal · ${ph.prot} g proteína</p>
+        </div>
+        <div style="text-align:right;flex:0 0 auto">
+          ${dom ? '<span class="tag warn">comida libre</span>'
+                : `<span class="tag">${tanda.n}</span>
+                   <p class="hint" style="margin:4px 0 0">se cocina el<br>${tanda.cocinaTxt}</p>`}
+        </div>
+      </div>
+      <div class="sheet-b">
+        ${dom ? '' : `<p class="note">Almuerzo y comida son <strong>los mismos los tres días</strong>
+          de esta tanda (${tanda.dias.map(d=>D.parse(d).getDate()).join(', ')}).</p>`}
+        ${franjas.map(frHtml).join('')}
+        <h4 class="sub">Total del día</h4>
+        <div class="tot">
+          ${cel('kcal', tot.kcal, parcial?null:ph.kcal, 'kcal')}
+          ${cel('prot', tot.p,    parcial?null:ph.prot, 'p', ' g')}
+          ${cel('hidr', tot.c,    parcial?null:ph.hc,   'kcal', ' g')}
+          ${cel('grasa',tot.g,    parcial?null:ph.grasa,'kcal', ' g')}
+          ${cel('fibra',tot.fib,  null, null, ' g')}
+        </div>
+        ${parcial?`<p class="hint">Los totales NO incluyen la comida libre: son las otras
+          cuatro franjas. Con la libre en su techo de ${dm.techo} kcal el día cerraría en
+          <strong>${Math.round(tot.kcal)+dm.techo} kcal</strong>. Sin comparación con el
+          objetivo hasta que la registres.</p>`:''}
+        <p class="hint">Cottage del día: <span class="tag ${cotLvl}">${dm.cottage} g</span>
+          ${cotLvl?' — por encima del aviso de '+MENU_PLAN.cottageAviso+' g. Es coste, no salud.':''}
+          &nbsp;·&nbsp; Fibra incluye la de legumbre y frutos secos, que la tabla del brief no listaba.</p>
+      </div>
+    </article>`;
+  },
+
+  renderMenuDoc(){
+    if(!el('mnDoc')) return;
+    const {desde, dias} = this.menuRange();
+
+    /* Autocomprobación del plan. Si alguien edita las tablas y rompe una
+       regla, sale aquí en lugar de pasar desapercibido durante semanas. */
+    const malB = MENU_PLAN.checkBlocks();
+    const malC = MENU_PLAN.checkCenas();
+    const aviso = (malB.length || malC.length) ? `<div class="card warn-card">
+      <h2>El plan incumple sus propias reglas</h2>
+      ${malB.length?`<p><strong>${malB.length} bloque(s)</strong> emparejan almuerzo y comida
+        con la misma proteína:</p>
+        <p class="hint">${malB.map(b=>`bloque ${b.i}: ${b.a} + ${b.c} → ${b.choque.join(', ')}`).join('<br>')}</p>`:''}
+      ${malC.length?`<p><strong>${malC.length} fallo(s)</strong> en los patrones de cena:</p>
+        <p class="hint">${malC.map(e=>`semana ${e.w+1}: ${e.regla} — ${e.det}`).join('<br>')}</p>`:''}
+    </div>` : '';
+
+    const dms = [];
+    for(let i=0;i<dias;i++) dms.push(this.dayMenu(D.add(desde,i)));
+
+    /* Resumen del tramo */
+    const s = dms.reduce((a,d)=>({
+      kcal:a.kcal+d.tot.kcal, p:a.p+d.tot.p, fib:a.fib+d.tot.fib, cot:a.cot+d.cottage
+    }), {kcal:0,p:0,fib:0,cot:0});
+    const legum = dms.filter(d=>d.franjas.some(x=>x.op.leg)).length;
+    const pesc  = dms.filter(d=>d.franjas.some(x=>x.op.pesc)).length;
+    /* Merluza en crudo del tramo, para saber cuánto sacar del congelador */
+    const merl  = dms.reduce((a,d)=>a + d.franjas.reduce((b,x)=>{
+      const it = this.opItems(x.op) || [];
+      const m  = it.find(([id])=>id==='merluza');
+      return b + (m ? m[1] : 0);
+    },0), 0);
+
+    const resumen = `<div class="card2">
+      <h4 class="sub">Media de los ${dias} ${dias===1?'día':'días'}<em>${
+        D.label(desde)} → ${D.label(D.add(desde,dias-1))}</em></h4>
+      <table>
+        <tr><td>Calorías</td><td class="n"><strong>${Math.round(s.kcal/dias)} kcal</strong></td></tr>
+        <tr><td>Proteína</td><td class="n"><strong>${(s.p/dias).toFixed(1)} g</strong></td></tr>
+        <tr><td>Fibra</td><td class="n">${(s.fib/dias).toFixed(1)} g</td></tr>
+        <tr><td>Cottage</td><td class="n">${Math.round(s.cot/dias)} g/día</td></tr>
+        <tr><td>Días con legumbre</td><td class="n">${legum} de ${dias}</td></tr>
+        <tr><td>Cenas de merluza</td><td class="n">${pesc} de ${dias}</td></tr>
+        <tr><td><strong>Merluza a descongelar</strong></td>
+            <td class="n"><strong>${merl} g</strong> en crudo</td></tr>
+      </table>
+      <p class="hint">Los domingos no suman la comida libre, así que bajan la media.
+        La merluza es congelada: sácala del congelador la mañana del día que toque.</p>
+    </div>`;
+
+    el('mnDoc').innerHTML = aviso + resumen + dms.map(d=>this.sheetHtml(d)).join('');
+
+    /* Encabezado fijo: la hoja más alta que esté visible */
+    if(this._mnObs) this._mnObs.disconnect();
+    const sheets = [...el('mnDoc').querySelectorAll('.sheet')];
+    if(sheets.length){
+      el('mnHead').innerHTML = `<span>${sheets[0].dataset.head}</span>
+        <em>${dias} ${dias===1?'día':'días'}</em>`;
+      this._mnObs = new IntersectionObserver(entries=>{
+        const vis = sheets.filter(sh=>{
+          const r = sh.getBoundingClientRect();
+          return r.bottom > 170 && r.top < window.innerHeight;
+        })[0];
+        if(vis) el('mnHead').innerHTML = `<span>${vis.dataset.head}</span>
+          <em>${dias} ${dias===1?'día':'días'}</em>`;
+      }, {threshold:[0,.05,.5,1]});
+      sheets.forEach(sh=>this._mnObs.observe(sh));
+    }
+
+    el('mnShare').onclick = ()=>this.shareMenu(dms);
+  },
+
+  /* Exportación en texto plano, para el móvil o para pegarlo donde sea */
+  async shareMenu(dms){
+    const txt = dms.map(d=>{
+      const cab = `${D.labelLong(d.f).toUpperCase()}  ·  ${d.tanda.n}`;
+      const fr = d.franjas.map(x=>{
+        const it = (this.opItems(x.op)||[])
+          .map(([id,gr])=>`     - ${this.foods[id]?.n||id}: ${gr} g`).join('\n');
+        const mac = (x.op.libre && !x.rec)
+          ? `hueco ${d.hueco} kcal (techo ${d.techo})`
+          : `${Math.round(x.eff.kcal)} kcal · ${x.eff.p.toFixed(0)} P · ` +
+            `${x.eff.c.toFixed(0)} HC · ${x.eff.g.toFixed(0)} G`;
+        return `  ${x.M.hora} ${x.op.n}\n     [${mac}]${it?'\n'+it:''}`;
+      }).join('\n');
+      return `${cab}\n${'─'.repeat(cab.length)}\n${fr}\n\n  TOTAL: ${
+        Math.round(d.tot.kcal)} kcal · ${d.tot.p.toFixed(0)} g P · ${
+        d.tot.c.toFixed(0)} g HC · ${d.tot.g.toFixed(0)} g G · ${
+        d.tot.fib.toFixed(0)} g fibra · cottage ${d.cottage} g`;
+    }).join('\n\n\n');
+
+    const full = `MENÚ · ${D.label(dms[0].f)} → ${D.label(dms[dms.length-1].f)}\n` +
+      `Gramajes EN CRUDO para carnes, pescados, arroz y pasta.\n\n\n${txt}\n`;
+
+    if(navigator.share){
+      try{ await navigator.share({text:full, title:'Menú'}); return; }catch(e){}
+    }
+    await shareFiles([{name:'menu.txt', text:full, mime:'text/plain'}]);
   },
 
     /* ═══════════════════ SALSAS ═══════════════════ */
@@ -278,7 +569,7 @@ const Diet = {
       html += `<button class="${cls.join(' ')}" data-f="${f}">
         <span>${d}</span>
         <div class="dots">${hechas?`<i class="dot ${full?'ok':'draft'}"></i>`:''}</div>
-        <em>${cena.rot||''}</em></button>`;
+        <em>${cena.id||''}</em></button>`;
     }
     html += '</div>';
     el('dietCal').innerHTML = html;
